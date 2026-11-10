@@ -1,0 +1,16 @@
+{
+  "name": "food-store",
+  "version": "1.0.0",
+  "description": "Proyecto de Organización Empresarial - Tienda de alimentos con PostgreSQL (Neon) en Vercel",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "init-db": "node api/init.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Store</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1f2937;
+    }
+    .card {
+      background: #ffffff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      text-align: center;
+      max-width: 480px;
+      width: 90%;
+    }
+    h1 {
+      font-size: 2.25rem;
+      color: #111827;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+    p.subtitle {
+      color: #6b7280;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+    .status {
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-block;
+      min-width: 220px;
+    }
+    .status.ok {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .status.loading {
+      background: #e5e7eb;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .actions {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    button {
+      padding: 0.6rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button.primary {
+      background: #2563eb;
+      color: #fff;
+    }
+    button.primary:hover { background: #1d4ed8; }
+    button.secondary {
+      background: #f3f4f6;
+      color: #111827;
+    }
+    button.secondary:hover { background: #e5e7eb; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .detail {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #6b7280;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Food Store</h1>
+    <p class="subtitle">Tienda de alimentos - Organización Empresarial</p>
+
+    <div id="status" class="status loading">Verificando conexión a la base de datos...</div>
+
+    <div class="actions">
+      <button class="primary" id="btnInit">Inicializar BD (crear tabla)</button>
+      <button class="secondary" id="btnRefresh">Refrescar estado</button>
+    </div>
+
+    <div id="detail" class="detail"></div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const detailEl = document.getElementById('detail');
+    const btnInit = document.getElementById('btnInit');
+    const btnRefresh = document.getElementById('btnRefresh');
+
+    async function checkStatus() {
+      statusEl.textContent = 'Consultando servidor...';
+      statusEl.className = 'status loading';
+      detailEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/status', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (data.connected) {
+          statusEl.textContent = data.message;
+          statusEl.className = 'status ok';
+          detailEl.textContent = `Hora servidor: ${data.data.hora_servidor} | Versión: ${data.data.version_postgres}`;
+        } else {
+          statusEl.textContent = data.message;
+          statusEl.className = 'status error';
+          detailEl.textContent = data.error || '';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Error de red al consultar el estado.';
+        statusEl.className = 'status error';
+        detailEl.textContent = err.message;
+      }
+    }
+
+    async function initDB() {
+      btnInit.disabled = true;
+      btnInit.textContent = 'Procesando...';
+      detailEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/init', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+          statusEl.textContent = data.message;
+          statusEl.className = 'status ok';
+          detailEl.textContent = `Registros en prueba: ${data.total_registros}`;
+        } else {
+          statusEl.textContent = data.message;
+          statusEl.className = 'status error';
+          detailEl.textContent = data.error || '';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Error al inicializar la base de datos.';
+        statusEl.className = 'status error';
+        detailEl.textContent = err.message;
+      } finally {
+        btnInit.disabled = false;
+        btnInit.textContent = 'Inicializar BD (crear tabla)';
+      }
+    }
+
+    btnRefresh.addEventListener('click', checkStatus);
+    btnInit.addEventListener('click', initDB);
+
+    checkStatus();
+  </script>
+</body>
+</html>
