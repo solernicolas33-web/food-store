@@ -53,6 +53,11 @@
       color: #991b1b;
       border: 1px solid #fecaca;
     }
+    .status.loading {
+      background: #e5e7eb;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
     .detail.ok {
       background: #d1fae5;
       color: #065f46;
@@ -69,16 +74,12 @@
       border-radius: 8px;
       margin-top: 1rem;
     }
-    .status.loading {
-      background: #e5e7eb;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
     .actions {
       margin-top: 1.5rem;
       display: flex;
       gap: 0.75rem;
       justify-content: center;
+      flex-wrap: wrap;
     }
     button {
       padding: 0.6rem 1.25rem;
@@ -121,15 +122,29 @@
     </div>
 
     <div id="detail" class="detail"></div>
-
-    <div id="setup-result" class="detail" style="margin-top:1.5rem; display:none;"></div>
+    <div id="setup-result" class="detail" style="margin-top:1rem; display:none;"></div>
   </div>
 
   <script>
     const statusEl = document.getElementById('status');
     const detailEl = document.getElementById('detail');
     const btnInit = document.getElementById('btnInit');
+    const btnSetup = document.getElementById('btnSetup');
     const btnRefresh = document.getElementById('btnRefresh');
+    const setupResult = document.getElementById('setup-result');
+
+    const TIMEOUT_MS = 10000;
+
+    async function fetchWithTimeout(url, options = {}) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        return await res.json();
+      } finally {
+        clearTimeout(id);
+      }
+    }
 
     async function checkStatus() {
       statusEl.textContent = 'Consultando servidor...';
@@ -137,8 +152,7 @@
       detailEl.textContent = '';
 
       try {
-        const res = await fetch('/api/status', { cache: 'no-store' });
-        const data = await res.json();
+        const data = await fetchWithTimeout('/api/status', { cache: 'no-store' });
 
         if (data.connected) {
           statusEl.textContent = data.message;
@@ -150,9 +164,9 @@
           detailEl.textContent = data.error || '';
         }
       } catch (err) {
-        statusEl.textContent = 'Error de red al consultar el estado.';
+        statusEl.textContent = 'Tiempo de espera agotado o error de red.';
         statusEl.className = 'status error';
-        detailEl.textContent = err.message;
+        detailEl.textContent = err.name === 'AbortError' ? 'La solicitud excedió los 10 segundos.' : err.message;
       }
     }
 
@@ -162,8 +176,7 @@
       detailEl.textContent = '';
 
       try {
-        const res = await fetch('/api/init', { method: 'POST' });
-        const data = await res.json();
+        const data = await fetchWithTimeout('/api/init', { method: 'POST' });
 
         if (data.success) {
           statusEl.textContent = data.message;
@@ -177,18 +190,12 @@
       } catch (err) {
         statusEl.textContent = 'Error al inicializar la base de datos.';
         statusEl.className = 'status error';
-        detailEl.textContent = err.message;
+        detailEl.textContent = err.name === 'AbortError' ? 'La solicitud excedió los 10 segundos.' : err.message;
       } finally {
         btnInit.disabled = false;
         btnInit.textContent = 'Inicializar BD (crear tabla)';
       }
     }
-
-    btnRefresh.addEventListener('click', checkStatus);
-    btnInit.addEventListener('click', initDB);
-
-    const btnSetup = document.getElementById('btnSetup');
-    const setupResult = document.getElementById('setup-result');
 
     async function runSetup() {
       btnSetup.disabled = true;
@@ -197,8 +204,7 @@
       setupResult.textContent = '';
 
       try {
-        const res = await fetch('/api/setup-db', { method: 'POST' });
-        const data = await res.json();
+        const data = await fetchWithTimeout('/api/setup-db', { method: 'POST' });
 
         setupResult.style.display = 'block';
         if (data.success) {
@@ -212,18 +218,22 @@
           `;
         } else {
           setupResult.className = 'detail error';
-          setupResult.innerHTML = `<strong>Error:</strong> ${data.message}<br>${data.error || ''}`;
+          setupResult.innerHTML = `<strong>Error:</strong> ${data.error || data.message || ''}`;
         }
       } catch (err) {
         setupResult.style.display = 'block';
         setupResult.className = 'detail error';
-        setupResult.textContent = 'Error de red al ejecutar el setup: ' + err.message;
+        setupResult.textContent = err.name === 'AbortError'
+          ? 'Tiempo de espera agotado (10s) al ejecutar el setup.'
+          : 'Error de red: ' + err.message;
       } finally {
         btnSetup.disabled = false;
         btnSetup.textContent = 'Ejecutar Setup BD';
       }
     }
 
+    btnRefresh.addEventListener('click', checkStatus);
+    btnInit.addEventListener('click', initDB);
     btnSetup.addEventListener('click', runSetup);
 
     checkStatus();
