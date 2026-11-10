@@ -10,30 +10,213 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       color: #1f2937;
     }
-    .card {
+
+    /* ========== HEADER ========== */
+    header {
       background: #ffffff;
-      padding: 2.5rem 2rem;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      text-align: center;
-      max-width: 480px;
-      width: 90%;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    h1 {
-      font-size: 2.25rem;
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+      text-decoration: none;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      color: #374151;
+    }
+    .user-badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-cliente { background: #dbeafe; color: #1e40af; }
+    .badge-empleado { background: #dcfce7; color: #166534; }
+    .badge-superadmin { background: #fef3c7; color: #92400e; }
+    .btn-logout {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-logout:hover { background: #dc2626; }
+
+    /* ========== MAIN ========== */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
       color: #111827;
       margin-bottom: 0.5rem;
-      letter-spacing: -0.5px;
     }
-    p.subtitle {
+    .hero p {
       color: #6b7280;
-      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    /* ========== AUTH SECTION ========== */
+    .auth-section {
+      max-width: 480px;
+      margin: 0 auto 3rem;
+    }
+    .auth-card {
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .auth-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .auth-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+    .auth-tab:hover { color: #1d4ed8; }
+
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.4rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
       font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+    .btn-submit {
+      width: 100%;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #1d4ed8; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .auth-divider {
+      margin: 1.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .quick-login {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #f3f4f6;
+    }
+    .quick-login h3 {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 0.75rem;
+    }
+    .quick-btns {
+      display: flex;
+      gap: 0.5rem;
+      flex-direction: column;
+    }
+    .quick-btn {
+      background: #f3f4f6;
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      text-align: left;
+      font-size: 0.85rem;
+      color: #374151;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .quick-btn:hover { background: #e5e7eb; }
+
+    /* ========== STATUS / SETUP ========== */
+    .tools-section {
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+    .tools-card {
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .tools-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      color: #111827;
     }
     .status {
       padding: 1rem 1.5rem;
@@ -42,6 +225,7 @@
       font-size: 0.95rem;
       display: inline-block;
       min-width: 220px;
+      margin-bottom: 1rem;
     }
     .status.ok {
       background: #d1fae5;
@@ -106,62 +290,364 @@
       color: #6b7280;
       word-break: break-all;
     }
+
+    /* ========== MESSAGES ========== */
+    .msg {
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .msg.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .msg.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    /* ========== PRODUCTOS PLACEHOLDER ========== */
+    .products-section {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      display: none;
+    }
+    .products-section.visible { display: block; }
+    .products-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .product-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+    }
+    .product-card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #111827; }
+    .product-card p { font-size: 0.85rem; color: #6b7280; margin-bottom: 0.75rem; }
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #374151;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      font-size: 0.85rem;
+      border-top: 1px solid #e5e7eb;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Food Store</h1>
-    <p class="subtitle">Tienda de alimentos - Organización Empresarial</p>
 
-    <div id="status" class="status loading">Verificando conexión a la base de datos...</div>
+  <header>
+    <div class="header-inner">
+      <a href="#" class="brand" onclick="event.preventDefault(); location.reload();">🛒 Food Store</a>
 
-    <div class="actions">
-      <button class="primary" id="btnInit">Inicializar BD (crear tabla)</button>
-      <button class="secondary" id="btnSetup">Ejecutar Setup BD</button>
-      <button class="secondary" id="btnRefresh">Refrescar estado</button>
+      <div id="auth-header" class="user-info" style="display:none;">
+        <span id="user-name"></span>
+        <span id="user-badge" class="user-badge badge-cliente">cliente</span>
+        <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+
+      <div id="auth-header-guest">
+        <a href="#" class="btn-logout" onclick="event.preventDefault(); showAuth();" style="background:#2563eb;color:#fff;text-decoration:none;padding:0.5rem 1rem;border-radius:8px;">Iniciar Sesión</a>
+      </div>
     </div>
+  </header>
 
-    <div id="detail" class="detail"></div>
-    <div id="setup-result" class="detail" style="margin-top:1rem; display:none;"></div>
-  </div>
+  <main>
+    <section class="hero">
+      <h1>Food Store</h1>
+      <p>Tienda de alimentos - Organización Empresarial</p>
+    </section>
+
+    <!-- ========== AUTENTICACIÓN ========== -->
+    <section class="auth-section" id="authSection" style="display:none;">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+          <button class="auth-tab" onclick="switchAuthTab('register')">Registrarse</button>
+        </div>
+
+        <div id="msg-login" class="msg"></div>
+        <div id="msg-register" class="msg"></div>
+
+        <!-- LOGIN -->
+        <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" required placeholder="correo@ejemplo.com" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" required placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn-submit" id="btnLoginSubmit">Iniciar Sesión</button>
+        </form>
+
+        <!-- REGISTER -->
+        <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="reg-nombre">Nombre completo</label>
+            <input type="text" id="reg-nombre" required placeholder="Juan Pérez" />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" required placeholder="correo@ejemplo.com" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Contraseña</label>
+            <input type="password" id="reg-password" required placeholder="•••••••• (mín. 6 caracteres)" />
+          </div>
+          <button type="submit" class="btn-submit" id="btnRegisterSubmit">Crear Cuenta</button>
+        </form>
+
+        <div class="auth-divider">o prueba con</div>
+        <div class="quick-login">
+          <h3>Usuarios de prueba</h3>
+          <div class="quick-btns">
+            <button class="quick-btn" onclick="fillQuickLogin('cliente@foodstore.com', 'Cliente123', 'Cliente Prueba')">👤 Cliente Prueba</button>
+            <button class="quick-btn" onclick="fillQuickLogin('empleado@foodstore.com', 'Empleado123', 'Empleado Prueba')">👨‍💼 Empleado Prueba</button>
+            <button class="quick-btn" onclick="fillQuickLogin('superadmin@foodstore.com', 'SuperAdmin123', 'Superadmin Prueba')">🔐 Superadmin Prueba</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== HERRAMIENTAS BD ========== -->
+    <section class="tools-section">
+      <div class="tools-card">
+        <h2>Estado de la Base de Datos</h2>
+        <div id="status" class="status loading">Verificando conexión...</div>
+        <div id="detail" class="detail"></div>
+
+        <div class="actions">
+          <button class="primary" id="btnInit">Inicializar BD (crear tabla test)</button>
+          <button class="secondary" id="btnSetup">Ejecutar Setup BD</button>
+          <button class="secondary" id="btnRefresh">Refrescar estado</button>
+        </div>
+        <div id="setup-result" class="detail" style="margin-top:1rem; display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ========== PRODUCTOS (solo si logueado) ========== -->
+    <section class="products-section" id="productsSection">
+      <h2>Catálogo de Productos</h2>
+      <div class="products-grid" id="productsGrid"></div>
+    </section>
+  </main>
+
+  <footer>
+    Food Store &middot; Proyecto de Organización Empresarial &middot; Pagos 100% simulados
+  </footer>
 
   <script>
-    const statusEl = document.getElementById('status');
-    const detailEl = document.getElementById('detail');
-    const btnInit = document.getElementById('btnInit');
-    const btnSetup = document.getElementById('btnSetup');
-    const btnRefresh = document.getElementById('btnRefresh');
-    const setupResult = document.getElementById('setup-result');
-
     const TIMEOUT_MS = 10000;
+    const JWT_STORAGE_KEY = 'food_store_token';
 
+    // ---------- Utilidades ----------
     async function fetchWithTimeout(url, options = {}) {
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
       try {
         const res = await fetch(url, { ...options, signal: controller.signal });
-        return await res.json();
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          return { ok: res.ok, status: res.status, data: await res.json() };
+        }
+        return { ok: res.ok, status: res.status, data: await res.text() };
       } finally {
         clearTimeout(id);
       }
     }
 
+    function showMsg(id, text, type = 'error') {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `msg ${type}`;
+      el.style.display = 'block';
+    }
+    function hideMsg(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // ---------- Estado de sesión ----------
+    function getToken() { return localStorage.getItem(JWT_STORAGE_KEY); }
+    function setToken(t) { localStorage.setItem(JWT_STORAGE_KEY, t); }
+    function clearToken() { localStorage.removeItem(JWT_STORAGE_KEY); }
+
+    function updateHeader(user) {
+      const guest = document.getElementById('auth-header-guest');
+      const auth = document.getElementById('auth-header');
+      const authSection = document.getElementById('authSection');
+      const products = document.getElementById('productsSection');
+
+      if (user) {
+        guest.style.display = 'none';
+        auth.style.display = 'flex';
+        document.getElementById('user-name').textContent = user.nombre;
+        const badge = document.getElementById('user-badge');
+        badge.textContent = user.rol;
+        badge.className = `user-badge badge-${user.rol}`;
+        authSection.style.display = 'none';
+        products.classList.add('visible');
+        loadProducts();
+      } else {
+        guest.style.display = 'block';
+        auth.style.display = 'none';
+        authSection.style.display = 'block';
+        products.classList.remove('visible');
+      }
+    }
+
+    async function checkSession() {
+      const token = getToken();
+      if (!token) { updateHeader(null); return; }
+
+      try {
+        const res = await fetchWithTimeout('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok && res.data.authenticated) {
+          updateHeader(res.data.data);
+        } else {
+          clearToken();
+          updateHeader(null);
+        }
+      } catch (e) {
+        clearToken();
+        updateHeader(null);
+      }
+    }
+
+    // ---------- Auth ----------
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`form-${tab}`).classList.add('active');
+      hideMsg('msg-login');
+      hideMsg('msg-register');
+    }
+
+    function showAuth() {
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnLoginSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+      hideMsg('msg-login');
+
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetchWithTimeout('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok && res.data.success) {
+          setToken(res.data.data.token);
+          updateHeader(res.data.data.usuario);
+        } else {
+          showMsg('msg-login', res.data.error || 'Email o contraseña incorrectos.');
+        }
+      } catch (err) {
+        showMsg('msg-login', err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Iniciar Sesión';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnRegisterSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Creando cuenta...';
+      hideMsg('msg-register');
+
+      const nombre = document.getElementById('reg-nombre').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await fetchWithTimeout('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, password })
+        });
+
+        if (res.ok && res.data.success) {
+          showMsg('msg-register', 'Cuenta creada correctamente. Ahora puedes iniciar sesión.', 'success');
+          document.getElementById('form-register').reset();
+          switchAuthTab('login');
+        } else {
+          showMsg('msg-register', res.data.error || 'Error al registrar.');
+        }
+      } catch (err) {
+        showMsg('msg-register', err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear Cuenta';
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetchWithTimeout('/api/auth/logout', { method: 'POST' });
+      } finally {
+        clearToken();
+        updateHeader(null);
+      }
+    }
+
+    function fillQuickLogin(email, password, nombre) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = password;
+      showMsg('msg-login', `Credenciales de ${nombre} cargadas. Haz clic en "Iniciar Sesión".`, 'success');
+      switchAuthTab('login');
+    }
+
+    // ---------- DB Status / Setup ----------
     async function checkStatus() {
+      const statusEl = document.getElementById('status');
+      const detailEl = document.getElementById('detail');
       statusEl.textContent = 'Consultando servidor...';
       statusEl.className = 'status loading';
       detailEl.textContent = '';
 
       try {
-        const data = await fetchWithTimeout('/api/status', { cache: 'no-store' });
-
-        if (data.connected) {
-          statusEl.textContent = data.message;
+        const res = await fetchWithTimeout('/api/status', { cache: 'no-store' });
+        if (res.data.connected) {
+          statusEl.textContent = res.data.message;
           statusEl.className = 'status ok';
-          detailEl.textContent = `Hora servidor: ${data.data.hora_servidor} | Versión: ${data.data.version_postgres}`;
+          detailEl.textContent = `Hora servidor: ${res.data.data.hora_servidor} | Versión: ${res.data.data.version_postgres}`;
         } else {
-          statusEl.textContent = data.message;
+          statusEl.textContent = res.data.message;
           statusEl.className = 'status error';
-          detailEl.textContent = data.error || '';
+          detailEl.textContent = res.data.error || '';
         }
       } catch (err) {
         statusEl.textContent = 'Tiempo de espera agotado o error de red.';
@@ -171,54 +657,53 @@
     }
 
     async function initDB() {
-      btnInit.disabled = true;
-      btnInit.textContent = 'Procesando...';
-      detailEl.textContent = '';
-
+      const btn = document.getElementById('btnInit');
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
       try {
-        const data = await fetchWithTimeout('/api/init', { method: 'POST' });
-
-        if (data.success) {
-          statusEl.textContent = data.message;
-          statusEl.className = 'status ok';
-          detailEl.textContent = `Registros en prueba: ${data.total_registros}`;
+        const res = await fetchWithTimeout('/api/init', { method: 'POST' });
+        const detailEl = document.getElementById('detail');
+        if (res.data.success) {
+          document.getElementById('status').textContent = res.data.message;
+          document.getElementById('status').className = 'status ok';
+          detailEl.textContent = `Registros en prueba: ${res.data.total_registros}`;
         } else {
-          statusEl.textContent = data.message;
-          statusEl.className = 'status error';
-          detailEl.textContent = data.error || '';
+          document.getElementById('status').textContent = res.data.message;
+          document.getElementById('status').className = 'status error';
+          detailEl.textContent = res.data.error || '';
         }
       } catch (err) {
-        statusEl.textContent = 'Error al inicializar la base de datos.';
-        statusEl.className = 'status error';
-        detailEl.textContent = err.name === 'AbortError' ? 'La solicitud excedió los 10 segundos.' : err.message;
+        document.getElementById('status').textContent = 'Error al inicializar.';
+        document.getElementById('status').className = 'status error';
+        document.getElementById('detail').textContent = err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message;
       } finally {
-        btnInit.disabled = false;
-        btnInit.textContent = 'Inicializar BD (crear tabla)';
+        btn.disabled = false;
+        btn.textContent = 'Inicializar BD (crear tabla)';
       }
     }
 
     async function runSetup() {
-      btnSetup.disabled = true;
-      btnSetup.textContent = 'Procesando setup...';
+      const btn = document.getElementById('btnSetup');
+      btn.disabled = true;
+      btn.textContent = 'Procesando setup...';
+      const setupResult = document.getElementById('setup-result');
       setupResult.style.display = 'none';
-      setupResult.textContent = '';
 
       try {
-        const data = await fetchWithTimeout('/api/setup-db', { method: 'POST' });
-
+        const res = await fetchWithTimeout('/api/setup-db', { method: 'POST' });
         setupResult.style.display = 'block';
-        if (data.success) {
+        if (res.data.success) {
           setupResult.className = 'detail ok';
           setupResult.innerHTML = `
             <strong>Setup completado:</strong><br>
-            Tablas: ${data.data.tablas_creadas.join(', ')}<br>
-            Categorías cargadas: ${data.data.categorias_insertadas}<br>
-            Productos cargados: ${data.data.productos_insertados}<br>
-            Usuarios cargados: ${data.data.usuarios_insertados}
+            Tablas: ${res.data.data.tablas_creadas.join(', ')}<br>
+            Categorías cargadas: ${res.data.data.categorias_insertadas}<br>
+            Productos cargados: ${res.data.data.productos_insertados}<br>
+            Usuarios cargados: ${res.data.data.usuarios_insertados}
           `;
         } else {
           setupResult.className = 'detail error';
-          setupResult.innerHTML = `<strong>Error:</strong> ${data.error || data.message || ''}`;
+          setupResult.innerHTML = `<strong>Error:</strong> ${res.data.error || res.data.message || ''}`;
         }
       } catch (err) {
         setupResult.style.display = 'block';
@@ -227,15 +712,48 @@
           ? 'Tiempo de espera agotado (10s) al ejecutar el setup.'
           : 'Error de red: ' + err.message;
       } finally {
-        btnSetup.disabled = false;
-        btnSetup.textContent = 'Ejecutar Setup BD';
+        btn.disabled = false;
+        btn.textContent = 'Ejecutar Setup BD';
       }
     }
 
-    btnRefresh.addEventListener('click', checkStatus);
-    btnInit.addEventListener('click', initDB);
-    btnSetup.addEventListener('click', runSetup);
+    // ---------- Productos ----------
+    async function loadProducts() {
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = '<p>Cargando productos...</p>';
 
+      try {
+        // Nota: como no hay endpoint de productos aún, mostramos datos estáticos de ejemplo
+        const productos = [
+          { nombre: 'Coca Cola 500ml', categoria: 'Bebidas', precio: 1.50, stock: 100, stock_minimo: 10 },
+          { nombre: 'Agua Mineral 1L', categoria: 'Bebidas', precio: 0.80, stock: 150, stock_minimo: 20 },
+          { nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 1.20, stock: 60, stock_minimo: 15 },
+          { nombre: 'Pan Blanco', categoria: 'Panadería', precio: 1.00, stock: 50, stock_minimo: 10 },
+          { nombre: 'Tomate 1kg', categoria: 'Verduras', precio: 2.50, stock: 100, stock_minimo: 20 },
+          { nombre: 'Zanahoria 1kg', categoria: 'Verduras', precio: 1.20, stock: 80, stock_minimo: 15 }
+        ];
+        grid.innerHTML = productos.map(p => `
+          <div class="product-card">
+            <h3>${p.nombre}</h3>
+            <p>${p.categoria}</p>
+            <div class="product-meta">
+              <span>S/ ${p.precio.toFixed(2)}</span>
+              <span>Stock: ${p.stock} (mín. ${p.stock_minimo})</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#991b1b;">No se pudieron cargar los productos.</p>';
+      }
+    }
+
+    // ---------- Inicialización ----------
+    document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
+    document.getElementById('btnRefresh').addEventListener('click', checkStatus);
+    document.getElementById('btnInit').addEventListener('click', initDB);
+    document.getElementById('btnSetup').addEventListener('click', runSetup);
+
+    checkSession();
     checkStatus();
   </script>
 </body>
