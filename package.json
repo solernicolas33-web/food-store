@@ -8,7 +8,8 @@
     "init-db": "node api/init.js"
   },
   "dependencies": {
-    "pg": "^8.11.0"
+    "pg": "^8.11.0",
+    "bcryptjs": "^2.4.3"
   },
   "engines": {
     "node": ">=18.x"

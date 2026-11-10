@@ -53,6 +53,22 @@
       color: #991b1b;
       border: 1px solid #fecaca;
     }
+    .detail.ok {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .detail.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
     .status.loading {
       background: #e5e7eb;
       color: #374151;
@@ -100,10 +116,13 @@
 
     <div class="actions">
       <button class="primary" id="btnInit">Inicializar BD (crear tabla)</button>
+      <button class="secondary" id="btnSetup">Ejecutar Setup BD</button>
       <button class="secondary" id="btnRefresh">Refrescar estado</button>
     </div>
 
     <div id="detail" class="detail"></div>
+
+    <div id="setup-result" class="detail" style="margin-top:1.5rem; display:none;"></div>
   </div>
 
   <script>
@@ -167,6 +186,45 @@
 
     btnRefresh.addEventListener('click', checkStatus);
     btnInit.addEventListener('click', initDB);
+
+    const btnSetup = document.getElementById('btnSetup');
+    const setupResult = document.getElementById('setup-result');
+
+    async function runSetup() {
+      btnSetup.disabled = true;
+      btnSetup.textContent = 'Procesando setup...';
+      setupResult.style.display = 'none';
+      setupResult.textContent = '';
+
+      try {
+        const res = await fetch('/api/setup-db', { method: 'POST' });
+        const data = await res.json();
+
+        setupResult.style.display = 'block';
+        if (data.success) {
+          setupResult.className = 'detail ok';
+          setupResult.innerHTML = `
+            <strong>Setup completado:</strong><br>
+            Tablas: ${data.data.tablas_creadas.join(', ')}<br>
+            Categorías cargadas: ${data.data.categorias_insertadas}<br>
+            Productos cargados: ${data.data.productos_insertados}<br>
+            Usuarios cargados: ${data.data.usuarios_insertados}
+          `;
+        } else {
+          setupResult.className = 'detail error';
+          setupResult.innerHTML = `<strong>Error:</strong> ${data.message}<br>${data.error || ''}`;
+        }
+      } catch (err) {
+        setupResult.style.display = 'block';
+        setupResult.className = 'detail error';
+        setupResult.textContent = 'Error de red al ejecutar el setup: ' + err.message;
+      } finally {
+        btnSetup.disabled = false;
+        btnSetup.textContent = 'Ejecutar Setup BD';
+      }
+    }
+
+    btnSetup.addEventListener('click', runSetup);
 
     checkStatus();
   </script>
