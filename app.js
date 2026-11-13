@@ -105,7 +105,10 @@ let state = {
   categories: [],
   cart: [],
   currentUser: null,
-  filters: { q: '', categoria: '' }
+  filters: { q: '', categoria: '' },
+  orders: [],
+  currentClientTab: 'mis-pedidos',
+  cancelOrderId: null
 };
 
 // ---------- Carrito (localStorage) ----------
@@ -207,6 +210,7 @@ function updateAuthUI(user) {
   const productsSection = document.getElementById('productsSection');
   const checkoutLoginPrompt = document.getElementById('checkoutLoginPrompt');
   const checkoutForm = document.getElementById('checkoutForm');
+  const ordersSection = document.getElementById('ordersSection');
 
   if (user) {
     guestEl.style.display = 'none';
@@ -224,9 +228,17 @@ function updateAuthUI(user) {
     if (user.rol === 'cliente') {
       checkoutLoginPrompt.style.display = 'none';
       checkoutForm.classList.add('visible');
+      ordersSection.style.display = 'block';
+      // Cargar pedidos al cambiar a la pestaña
+      if (state.currentClientTab === 'mis-pedidos') {
+        loadMyOrders();
+      } else if (state.currentClientTab === 'mi-perfil') {
+        loadMyProfile();
+      }
     } else {
       checkoutLoginPrompt.style.display = 'block';
       checkoutForm.classList.remove('visible');
+      ordersSection.style.display = 'none';
     }
   } else {
     guestEl.style.display = 'block';
@@ -238,6 +250,7 @@ function updateAuthUI(user) {
     loadProducts();
     checkoutLoginPrompt.style.display = 'block';
     checkoutForm.classList.remove('visible');
+    ordersSection.style.display = 'none';
   }
 }
 
@@ -672,6 +685,229 @@ async function handleCheckout(e) {
   }
 }
 
+// ---------- Pestañas del Cliente (Mis Pedidos / Mi Perfil) ----------
+function switchClientTab(tab) {
+  state.currentClientTab = tab;
+  document.querySelectorAll('.client-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.client-tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  hideMsg('msg-orders');
+
+  if (tab === 'mis-pedidos') {
+    loadMyOrders();
+  } else if (tab === 'mi-perfil') {
+    loadMyProfile();
+  }
+}
+
+async function loadMyOrders() {
+  const listEl = document.getElementById('ordersList');
+  const emptyEl = document.getElementById('ordersEmpty');
+
+  listEl.innerHTML = '<p class="loading">Cargando pedidos...</p>';
+  emptyEl.style.display = 'none';
+
+  try {
+    const res = await fetchAPI('/pedidos/mis-pedidos');
+    if (res.ok && res.data) {
+      state.orders = res.data;
+      renderOrders();
+    } else {
+      listEl.innerHTML = '<p class="error">Error al cargar pedidos.</p>';
+    }
+  } catch (e) {
+    listEl.innerHTML = '<p class="error">Error de conexión.</p>';
+  }
+}
+
+function renderOrders() {
+  const listEl = document.getElementById('ordersList');
+  const emptyEl = document.getElementById('ordersEmpty');
+
+  if (state.orders.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  listEl.innerHTML = state.orders.map(order => `
+    <article class="order-card" data-id="${order.pedido_id}">
+      <div class="order-header">
+        <span class="order-id">Pedido #${order.pedido_id}</span>
+        <div class="order-meta">
+          <span>📅 ${formatDate(order.fecha_creacion)}</span>
+          <span class="order-status status-${order.estado}">${order.estado.replace('_', ' ')}</span>
+        </div>
+      </div>
+      <div class="order-body">
+        <div class="order-items">
+          ${order.items.map(item => `
+            <div class="order-item">
+              ${item.imagen_url ? `<img src="${item.imagen_url}" alt="${item.nombre}" class="order-item-image" onerror="this.style.display='none'">` : '<div class="order-item-image" style="display:flex;align-items:center;justify-content:center;color:#9ca3af;">📦</div>'}
+              <div class="order-item-info">
+                <div class="order-item-name">${item.nombre}</div>
+                <div class="order-item-details">${item.cantidad} x S/ ${item.precio_unitario.toFixed(2)}</div>
+              </div>
+              <div class="order-item-subtotal">S/ ${item.subtotal.toFixed(2)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="order-footer">
+          <div class="order-total">Total: S/ ${order.total.toFixed(2)}</div>
+          <div class="order-actions">
+            ${order.estado === 'pendiente' ? `
+              <button class="btn-small btn-pay" onclick="openPaymentModalFromOrder(${order.pedido_id})">Pagar ahora</button>
+              <button class="btn-small btn-cancel" onclick="openCancelModal(${order.pedido_id})">Cancelar pedido</button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function openPaymentModalFromOrder(pedidoId) {
+  const order = state.orders.find(o => o.pedido_id === pedidoId);
+  if (order) {
+    openPaymentModal(order.pedido_id, order.total, order.items);
+  }
+}
+
+// ---------- Modal Cancelar Pedido ----------
+function openCancelModal(pedidoId) {
+  state.cancelOrderId = pedidoId;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'cancel-modal-overlay';
+  overlay.id = 'cancelModalOverlay';
+  overlay.innerHTML = `
+    <div class="cancel-modal">
+      <h2>❌ Cancelar Pedido #${pedidoId}</h2>
+      <p style="text-align:center; color:#6b7280; margin-bottom:1.5rem;">Indique el motivo de la cancelación</p>
+      <form id="cancelForm" onsubmit="handleCancelOrder(event)">
+        <div class="form-group">
+          <label for="cancelMotivo">Motivo *</label>
+          <textarea id="cancelMotivo" required placeholder="Ej: Cambio de opinión, problema con la dirección, etc." aria-label="Motivo de cancelación"></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-confirm" id="btnConfirmCancel">Confirmar cancelación</button>
+          <button type="button" class="btn btn-close" onclick="closeCancelModal()">Cerrar</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeCancelModal();
+  });
+}
+
+function closeCancelModal() {
+  const overlay = document.getElementById('cancelModalOverlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut 0.2s ease';
+    setTimeout(() => overlay.remove(), 200);
+  }
+  state.cancelOrderId = null;
+}
+
+async function handleCancelOrder(e) {
+  e.preventDefault();
+
+  if (!state.cancelOrderId) return;
+
+  const motivo = document.getElementById('cancelMotivo').value.trim();
+  if (!motivo) {
+    showToast('El motivo es obligatorio', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmCancel');
+  btn.disabled = true; btn.textContent = 'Cancelando...';
+
+  try {
+    const res = await fetchAPI(`/pedidos/${state.cancelOrderId}/cancelar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast('Pedido cancelado correctamente.', 'success');
+      closeCancelModal();
+      loadMyOrders(); // Recargar lista
+    } else {
+      showToast(res.data.error || 'Error al cancelar el pedido', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar cancelación';
+  }
+}
+
+// ---------- Mi Perfil ----------
+async function loadMyProfile() {
+  try {
+    const res = await fetchAPI('/auth/perfil');
+    if (res.ok && res.data) {
+      const user = res.data;
+      document.getElementById('profileAvatar').textContent = user.nombre.charAt(0).toUpperCase();
+      document.getElementById('profileName').textContent = user.nombre;
+      document.getElementById('profileEmail').textContent = user.email;
+      document.getElementById('profileEmailInput').value = user.email;
+      document.getElementById('profileNombre').value = user.nombre;
+      document.getElementById('profileTelefono').value = user.telefono || '';
+      document.getElementById('profileDireccion').value = user.direccion || '';
+      document.getElementById('profileRole').textContent = user.rol;
+      document.getElementById('profileRole').className = `profile-role role-${user.rol}`;
+    } else {
+      showMsg('msg-orders', res.data.error || 'Error al cargar perfil', 'error');
+    }
+  } catch (e) {
+    showMsg('msg-orders', 'Error de conexión', 'error');
+  }
+}
+
+async function handleProfileUpdate(e) {
+  e.preventDefault();
+
+  const telefono = document.getElementById('profileTelefono').value.trim();
+  const direccion = document.getElementById('profileDireccion').value.trim();
+
+  const btn = document.querySelector('#profileForm .btn-submit');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  try {
+    const res = await fetchAPI('/auth/perfil', {
+      method: 'PUT',
+      body: JSON.stringify({ telefono: telefono || null, direccion: direccion || null })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast('Perfil actualizado correctamente.', 'success');
+      // Actualizar datos en la UI
+      document.getElementById('profileTelefono').value = res.data.data.telefono || '';
+      document.getElementById('profileDireccion').value = res.data.data.direccion || '';
+    } else {
+      showToast(res.data.error || 'Error al actualizar perfil', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+}
+
 // ---------- DB Status (legacy) ----------
 async function checkStatus() {
   const statusEl = document.getElementById('status');
@@ -761,3 +997,9 @@ window.toggleCart = toggleCart;
 window.handlePaymentAction = handlePaymentAction;
 window.retryPayment = retryPayment;
 window.closePaymentModal = closePaymentModal;
+window.switchClientTab = switchClientTab;
+window.openCancelModal = openCancelModal;
+window.closeCancelModal = closeCancelModal;
+window.handleCancelOrder = handleCancelOrder;
+window.handleProfileUpdate = handleProfileUpdate;
+window.openPaymentModalFromOrder = openPaymentModalFromOrder;

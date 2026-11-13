@@ -35,6 +35,8 @@ module.exports = async (req, res) => {
         password_hash VARCHAR(255) NOT NULL,
         rol VARCHAR(20) DEFAULT 'cliente' CHECK (rol IN ('cliente', 'empleado', 'superadmin')),
         estado VARCHAR(20) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo')),
+        telefono VARCHAR(50),
+        direccion TEXT,
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
