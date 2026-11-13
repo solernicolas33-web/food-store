@@ -10,6 +10,22 @@
   },
   "routes": [
     {
+      "src": "/api/auth/(.*)",
+      "dest": "/api/auth"
+    },
+    {
+      "src": "/api/productos/(.*)",
+      "dest": "/api/productos"
+    },
+    {
+      "src": "/api/pedidos/(.*)",
+      "dest": "/api/pedidos"
+    },
+    {
+      "src": "/api/admin/(.*)",
+      "dest": "/api/admin"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
