@@ -118,7 +118,10 @@ let state = {
   adminCategories: [],
   editingProductId: null,
   editingCategoryId: null,
-  cancelAdminOrderId: null
+  cancelAdminOrderId: null,
+  // Superadmin state
+  superadminUsers: [],
+  superadminMetrics: null
 };
 
 // ---------- Carrito (localStorage) ----------
@@ -222,6 +225,7 @@ function updateAuthUI(user) {
   const checkoutForm = document.getElementById('checkoutForm');
   const ordersSection = document.getElementById('ordersSection');
   const adminSection = document.getElementById('adminSection');
+  const tabSuperadmin = document.getElementById('tabSuperadmin');
 
   if (user) {
     guestEl.style.display = 'none';
@@ -241,6 +245,7 @@ function updateAuthUI(user) {
       checkoutForm.classList.add('visible');
       ordersSection.style.display = 'block';
       adminSection.style.display = 'none';
+      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
       // Cargar pedidos al cambiar a la pestaña
       if (state.currentClientTab === 'mis-pedidos') {
         loadMyOrders();
@@ -252,18 +257,26 @@ function updateAuthUI(user) {
       checkoutForm.classList.remove('visible');
       ordersSection.style.display = 'none';
       adminSection.style.display = 'block';
+      // Mostrar/ocultar pestaña Superadmin
+      if (tabSuperadmin) {
+        tabSuperadmin.style.display = user.rol === 'superadmin' ? 'inline-block' : 'none';
+      }
       // Cargar panel de empleado
       if (state.currentAdminTab === 'admin-pedidos') {
         loadAdminOrders();
       } else if (state.currentAdminTab === 'admin-inventario') {
         loadAdminProducts();
         loadAdminCategories();
+      } else if (state.currentAdminTab === 'admin-superadmin') {
+        loadSuperadminMetrics();
+        loadSuperadminUsers();
       }
     } else {
       checkoutLoginPrompt.style.display = 'block';
       checkoutForm.classList.remove('visible');
       ordersSection.style.display = 'none';
       adminSection.style.display = 'none';
+      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
     }
   } else {
     guestEl.style.display = 'block';
@@ -277,6 +290,7 @@ function updateAuthUI(user) {
     checkoutForm.classList.remove('visible');
     ordersSection.style.display = 'none';
     adminSection.style.display = 'none';
+    if (tabSuperadmin) tabSuperadmin.style.display = 'none';
   }
 }
 
@@ -950,6 +964,9 @@ function switchAdminTab(tab) {
   } else if (tab === 'admin-inventario') {
     loadAdminProducts();
     loadAdminCategories();
+  } else if (tab === 'admin-superadmin') {
+    loadSuperadminMetrics();
+    loadSuperadminUsers();
   }
 }
 
@@ -1488,6 +1505,163 @@ async function handleCategorySubmit(e) {
   }
 }
 
+// ---------- SUPERADMIN ----------
+async function loadSuperadminMetrics() {
+  const gridEl = document.getElementById('metricsGrid');
+  if (gridEl) gridEl.innerHTML = '<p class="loading" style="grid-column: 1 / -1; text-align: center;">Cargando métricas...</p>';
+
+  try {
+    const res = await fetchAPI('/admin/metricas');
+    if (res.ok && res.data) {
+      state.superadminMetrics = res.data;
+      renderSuperadminMetrics(res.data);
+    } else {
+      if (gridEl) gridEl.innerHTML = '<p class="error" style="grid-column: 1 / -1; text-align: center;">Error al cargar métricas.</p>';
+    }
+  } catch (e) {
+    if (gridEl) gridEl.innerHTML = '<p class="error" style="grid-column: 1 / -1; text-align: center;">Error de conexión.</p>';
+  }
+}
+
+function renderSuperadminMetrics(m) {
+  // Tarjetas principales
+  document.getElementById('metricTotalVentas').textContent = `S/ ${m.total_ventas.toFixed(2)}`;
+  document.getElementById('metricPedidosConfirmados').textContent = m.total_pedidos_confirmados;
+  document.getElementById('metricStockBajo').textContent = m.productos_stock_bajo_count;
+  document.getElementById('metricClientesActivos').textContent = m.clientes_activos;
+
+  // Pedidos por estado
+  const estadoMap = {
+    'pendiente': 'estadoPendiente',
+    'confirmado': 'estadoConfirmado',
+    'en_preparacion': 'estadoEnPreparacion',
+    'en_camino': 'estadoEnCamino',
+    'entregado': 'estadoEntregado',
+    'cancelado': 'estadoCancelado'
+  };
+
+  Object.entries(estadoMap).forEach(([estado, elementId]) => {
+    const el = document.getElementById(elementId);
+    if (el) el.textContent = m.pedidos_por_estado[estado] || 0;
+  });
+}
+
+async function loadSuperadminUsers() {
+  const bodyEl = document.getElementById('superadminUsersBody');
+  const emptyEl = document.getElementById('superadminUsersEmpty');
+
+  bodyEl.innerHTML = '<tr><td colspan="7" class="loading">Cargando usuarios...</td></tr>';
+  emptyEl.style.display = 'none';
+
+  try {
+    const res = await fetchAPI('/admin/usuarios');
+    if (res.ok && res.data) {
+      state.superadminUsers = res.data;
+      renderSuperadminUsers(res.data);
+    } else {
+      bodyEl.innerHTML = '<tr><td colspan="7" class="error">Error al cargar usuarios.</td></tr>';
+    }
+  } catch (e) {
+    bodyEl.innerHTML = '<tr><td colspan="7" class="error">Error de conexión.</td></tr>';
+  }
+}
+
+function renderSuperadminUsers(users) {
+  const bodyEl = document.getElementById('superadminUsersBody');
+  const emptyEl = document.getElementById('superadminUsersEmpty');
+
+  if (users.length === 0) {
+    bodyEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  const currentUserId = state.currentUser?.id;
+
+  bodyEl.innerHTML = users.map(u => {
+    const isCurrentUser = u.id === currentUserId;
+    const isLastSuperadmin = u.rol === 'superadmin' && u.activo === true;
+    // Verificar si es el último superadmin activo para deshabilitar botones
+    let superadminCount = 0;
+    if (state.superadminMetrics) {
+      // No tenemos el count exacto aquí, haremos la verificación en el servidor
+    }
+
+    const rolOptions = ['cliente', 'empleado', 'superadmin'].map(r =>
+      `<option value="${r}" ${u.rol === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`
+    ).join('');
+
+    return `
+      <tr ${isCurrentUser ? 'style="background: #fef3c7;"' : ''}>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">${u.id}</td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${u.nombre} ${isCurrentUser ? '<span style="font-size:0.7rem;color:#92400e;margin-left:0.5rem;">(Tú)</span>' : ''}</td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">${u.email}</td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+          <select onchange="changeUserRole(${u.id}, this.value)" ${isCurrentUser ? 'disabled' : ''} style="padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; background: #fff;">
+            ${rolOptions}
+          </select>
+        </td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+          <label class="estado-toggle" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" ${u.activo ? 'checked' : ''} onchange="toggleUserActive(${u.id}, this.checked)" ${isCurrentUser ? 'disabled' : ''}>
+            <span>${u.activo ? 'Activo' : 'Inactivo'}</span>
+          </label>
+        </td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-size: 0.8rem; color: #6b7280;">${formatDate(u.fecha_creacion)}</td>
+        <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+          ${isCurrentUser ? '<span style="color: #9ca3af; font-size: 0.8rem;">—</span>' : ''}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function changeUserRole(userId, newRole) {
+  if (!['cliente', 'empleado', 'superadmin'].includes(newRole)) return;
+
+  try {
+    const res = await fetchAPI('/admin/usuarios', {
+      method: 'PUT',
+      body: JSON.stringify({ id: userId, rol: newRole })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast(`Rol actualizado a "${newRole}".`, 'success');
+      loadSuperadminUsers();
+      loadSuperadminMetrics(); // Refrescar métricas por si afecta conteos
+    } else {
+      showToast(res.data.error || 'Error al cambiar rol', 'error');
+      loadSuperadminUsers(); // Recargar para revertir UI
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+    loadSuperadminUsers();
+  }
+}
+
+async function toggleUserActive(userId, activo) {
+  try {
+    const res = await fetchAPI('/admin/usuarios', {
+      method: 'PUT',
+      body: JSON.stringify({ id: userId, activo })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast(`Usuario ${activo ? 'activado' : 'desactivado'} correctamente.`, 'success');
+      loadSuperadminUsers();
+      loadSuperadminMetrics();
+    } else {
+      showToast(res.data.error || 'Error al cambiar estado', 'error');
+      loadSuperadminUsers(); // Recargar para revertir UI
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+    loadSuperadminUsers();
+  }
+}
+
 // ---------- DB Status (legacy) ----------
 async function checkStatus() {
   const statusEl = document.getElementById('status');
@@ -1600,3 +1774,8 @@ window.toggleCategoryEstado = toggleCategoryEstado;
 window.openCategoryModal = openCategoryModal;
 window.closeCategoryModal = closeCategoryModal;
 window.handleCategorySubmit = handleCategorySubmit;
+// Superadmin
+window.loadSuperadminMetrics = loadSuperadminMetrics;
+window.loadSuperadminUsers = loadSuperadminUsers;
+window.changeUserRole = changeUserRole;
+window.toggleUserActive = toggleUserActive;

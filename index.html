@@ -1101,6 +1101,7 @@
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="switchAdminTab('admin-pedidos')">📋 Pedidos</button>
         <button class="admin-tab" onclick="switchAdminTab('admin-inventario')">📦 Inventario y Categorías</button>
+        <button class="admin-tab" id="tabSuperadmin" onclick="switchAdminTab('admin-superadmin')" style="display:none;">🔐 Panel Superadmin</button>
       </div>
 
       <div id="msg-admin" class="msg"></div>
@@ -1195,6 +1196,94 @@
             <button class="btn-primary" onclick="openCategoryModal()">➕ Nueva Categoría</button>
           </div>
           <div class="categories-list" id="categoriesList"></div>
+        </div>
+      </div>
+
+      <!-- PANEL SUPERADMIN -->
+      <div id="panel-admin-superadmin" class="admin-tab-panel">
+        <h2>🔐 Panel Superadmin</h2>
+
+        <!-- Métricas del Negocio -->
+        <div class="metrics-grid" id="metricsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <div class="metric-card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.85rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">💰 Total Ventas</div>
+            <div id="metricTotalVentas" style="font-size: 2rem; font-weight: 700; color: #059669;">S/ 0.00</div>
+          </div>
+          <div class="metric-card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.85rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">📦 Pedidos Confirmados</div>
+            <div id="metricPedidosConfirmados" style="font-size: 2rem; font-weight: 700; color: #2563eb;">0</div>
+          </div>
+          <div class="metric-card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.85rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">⚠️ Stock Bajo</div>
+            <div id="metricStockBajo" style="font-size: 2rem; font-weight: 700; color: #dc2626;">0</div>
+          </div>
+          <div class="metric-card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.85rem; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">👥 Clientes Activos</div>
+            <div id="metricClientesActivos" style="font-size: 2rem; font-weight: 700; color: #7c3aed;">0</div>
+          </div>
+        </div>
+
+        <!-- Pedidos por Estado -->
+        <div class="metric-section" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+          <h3 style="font-size: 1.1rem; color: #111827; margin-bottom: 1rem;">📊 Pedidos por Estado</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+            <div class="estado-card estado-pendiente" style="background: #fef3c7; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #92400e; font-weight: 600; text-transform: uppercase;">Pendiente</div>
+              <div id="estadoPendiente" style="font-size: 1.5rem; font-weight: 700; color: #92400e;">0</div>
+            </div>
+            <div class="estado-card estado-confirmado" style="background: #dbeafe; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #1e40af; font-weight: 600; text-transform: uppercase;">Confirmado</div>
+              <div id="estadoConfirmado" style="font-size: 1.5rem; font-weight: 700; color: #1e40af;">0</div>
+            </div>
+            <div class="estado-card estado-en_preparacion" style="background: #e0e7ff; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #3730a3; font-weight: 600; text-transform: uppercase;">En Preparación</div>
+              <div id="estadoEnPreparacion" style="font-size: 1.5rem; font-weight: 700; color: #3730a3;">0</div>
+            </div>
+            <div class="estado-card estado-en_camino" style="background: #fef3c7; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #92400e; font-weight: 600; text-transform: uppercase;">En Camino</div>
+              <div id="estadoEnCamino" style="font-size: 1.5rem; font-weight: 700; color: #92400e;">0</div>
+            </div>
+            <div class="estado-card estado-entregado" style="background: #d1fae5; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #065f46; font-weight: 600; text-transform: uppercase;">Entregado</div>
+              <div id="estadoEntregado" style="font-size: 1.5rem; font-weight: 700; color: #065f46;">0</div>
+            </div>
+            <div class="estado-card estado-cancelado" style="background: #fee2e2; border-radius: 8px; padding: 1rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #991b1b; font-weight: 600; text-transform: uppercase;">Cancelado</div>
+              <div id="estadoCancelado" style="font-size: 1.5rem; font-weight: 700; color: #991b1b;">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gestión de Usuarios y Roles -->
+        <div class="metric-section" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="font-size: 1.1rem; color: #111827;">👥 Gestión de Usuarios y Roles</h3>
+            <button class="btn-secondary" onclick="loadSuperadminUsers()">🔄 Refrescar</button>
+          </div>
+          <div id="msg-superadmin" class="msg"></div>
+
+          <div class="users-table" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="background: #f9fafb;">
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">ID</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Nombre</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Email</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Rol</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Estado</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Fecha Creación</th>
+                  <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="superadminUsersBody"></tbody>
+            </table>
+          </div>
+          <div id="superadminUsersEmpty" class="empty-state" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <p>No hay usuarios registrados</p>
+          </div>
         </div>
       </div>
     </section>
