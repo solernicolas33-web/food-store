@@ -108,7 +108,17 @@ let state = {
   filters: { q: '', categoria: '' },
   orders: [],
   currentClientTab: 'mis-pedidos',
-  cancelOrderId: null
+  cancelOrderId: null,
+  // Admin state
+  currentAdminTab: 'admin-pedidos',
+  adminOrders: [],
+  adminOrdersPagination: { pagina: 1, por_pagina: 20, total: 0 },
+  adminFilterEstado: '',
+  adminProducts: [],
+  adminCategories: [],
+  editingProductId: null,
+  editingCategoryId: null,
+  cancelAdminOrderId: null
 };
 
 // ---------- Carrito (localStorage) ----------
@@ -211,6 +221,7 @@ function updateAuthUI(user) {
   const checkoutLoginPrompt = document.getElementById('checkoutLoginPrompt');
   const checkoutForm = document.getElementById('checkoutForm');
   const ordersSection = document.getElementById('ordersSection');
+  const adminSection = document.getElementById('adminSection');
 
   if (user) {
     guestEl.style.display = 'none';
@@ -229,16 +240,30 @@ function updateAuthUI(user) {
       checkoutLoginPrompt.style.display = 'none';
       checkoutForm.classList.add('visible');
       ordersSection.style.display = 'block';
+      adminSection.style.display = 'none';
       // Cargar pedidos al cambiar a la pestaña
       if (state.currentClientTab === 'mis-pedidos') {
         loadMyOrders();
       } else if (state.currentClientTab === 'mi-perfil') {
         loadMyProfile();
       }
+    } else if (user.rol === 'empleado' || user.rol === 'superadmin') {
+      checkoutLoginPrompt.style.display = 'block';
+      checkoutForm.classList.remove('visible');
+      ordersSection.style.display = 'none';
+      adminSection.style.display = 'block';
+      // Cargar panel de empleado
+      if (state.currentAdminTab === 'admin-pedidos') {
+        loadAdminOrders();
+      } else if (state.currentAdminTab === 'admin-inventario') {
+        loadAdminProducts();
+        loadAdminCategories();
+      }
     } else {
       checkoutLoginPrompt.style.display = 'block';
       checkoutForm.classList.remove('visible');
       ordersSection.style.display = 'none';
+      adminSection.style.display = 'none';
     }
   } else {
     guestEl.style.display = 'block';
@@ -251,6 +276,7 @@ function updateAuthUI(user) {
     checkoutLoginPrompt.style.display = 'block';
     checkoutForm.classList.remove('visible');
     ordersSection.style.display = 'none';
+    adminSection.style.display = 'none';
   }
 }
 
@@ -908,6 +934,560 @@ async function handleProfileUpdate(e) {
   }
 }
 
+// ========== PANEL EMPLEADO ==========
+
+// Pestañas del Panel Empleado
+function switchAdminTab(tab) {
+  state.currentAdminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  hideMsg('msg-admin');
+
+  if (tab === 'admin-pedidos') {
+    loadAdminOrders();
+  } else if (tab === 'admin-inventario') {
+    loadAdminProducts();
+    loadAdminCategories();
+  }
+}
+
+// ---------- ADMIN PEDIDOS ----------
+async function loadAdminOrders() {
+  const estado = document.getElementById('adminFilterEstado').value;
+  state.adminFilterEstado = estado;
+  const { pagina, por_pagina } = state.adminOrdersPagination;
+
+  const bodyEl = document.getElementById('adminOrdersBody');
+  const emptyEl = document.getElementById('adminOrdersEmpty');
+  const paginationEl = document.getElementById('adminPagination');
+
+  bodyEl.innerHTML = '<tr><td colspan="6" class="loading">Cargando pedidos...</td></tr>';
+  emptyEl.style.display = 'none';
+  paginationEl.innerHTML = '';
+
+  try {
+    const res = await fetchAPI(`/admin/pedidos?estado=${encodeURIComponent(estado)}&pagina=${pagina}&por_pagina=${por_pagina}`);
+    if (res.ok && res.data) {
+      state.adminOrders = res.data.data;
+      state.adminOrdersPagination = res.data.pagination;
+      renderAdminOrders();
+    } else {
+      bodyEl.innerHTML = '<tr><td colspan="6" class="error">Error al cargar pedidos.</td></tr>';
+    }
+  } catch (e) {
+    bodyEl.innerHTML = '<tr><td colspan="6" class="error">Error de conexión.</td></tr>';
+  }
+}
+
+function renderAdminOrders() {
+  const bodyEl = document.getElementById('adminOrdersBody');
+  const emptyEl = document.getElementById('adminOrdersEmpty');
+  const paginationEl = document.getElementById('adminPagination');
+
+  if (state.adminOrders.length === 0) {
+    bodyEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    paginationEl.innerHTML = '';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  bodyEl.innerHTML = state.adminOrders.map(order => `
+    <tr>
+      <td>#${order.pedido_id}</td>
+      <td>
+        <div>${order.cliente_nombre}</div>
+        <div style="font-size:0.75rem;color:#6b7280;">${order.cliente_email}</div>
+      </td>
+      <td>${formatDate(order.fecha_creacion)}</td>
+      <td><span class="estado-badge estado-${order.estado}">${order.estado.replace('_', ' ')}</span></td>
+      <td>S/ ${order.total.toFixed(2)}</td>
+      <td>
+        <div class="order-actions" style="display:flex; gap:0.25rem; flex-wrap:wrap;">
+          ${order.siguiente_estado ? `
+            <button class="btn-small btn-next" onclick="advanceOrderState(${order.pedido_id}, '${order.siguiente_estado}')" title="Avanzar a ${order.siguiente_estado.replace('_', ' ')}">
+              ➡️ ${order.siguiente_estado.replace('_', ' ')}
+            </button>
+          ` : ''}
+          ${order.puede_cancelar ? `
+            <button class="btn-small btn-cancel" onclick="openCancelAdminModal(${order.pedido_id})">Cancelar</button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Paginación
+  const { pagina, por_pagina, total } = state.adminOrdersPagination;
+  const totalPages = Math.ceil(total / por_pagina);
+  if (totalPages > 1) {
+    let html = '';
+    if (pagina > 1) {
+      html += `<button onclick="changeAdminPage(${pagina - 1})">« Anterior</button>`;
+    }
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= pagina - 1 && i <= pagina + 1)) {
+        html += `<button class="${i === pagina ? 'active' : ''}" onclick="changeAdminPage(${i})">${i}</button>`;
+      } else if (i === pagina - 2 || i === pagina + 2) {
+        html += `<span>...</span>`;
+      }
+    }
+    if (pagina < totalPages) {
+      html += `<button onclick="changeAdminPage(${pagina + 1})">Siguiente »</button>`;
+    }
+    paginationEl.innerHTML = html;
+  }
+}
+
+function changeAdminPage(pagina) {
+  state.adminOrdersPagination.pagina = pagina;
+  loadAdminOrders();
+}
+
+async function advanceOrderState(pedidoId, nuevoEstado) {
+  try {
+    const res = await fetchAPI('/admin/pedidos', {
+      method: 'PUT',
+      body: JSON.stringify({ id: pedidoId, accion: 'avanzar_estado' })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast(`Estado avanzado a "${nuevoEstado.replace('_', ' ')}".`, 'success');
+      loadAdminOrders();
+    } else {
+      showToast(res.data.error || 'Error al avanzar estado', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  }
+}
+
+// Modal cancelar pedido admin
+function openCancelAdminModal(pedidoId) {
+  state.cancelAdminOrderId = pedidoId;
+
+  const overlay = document.getElementById('cancelAdminModalOverlay');
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>❌ Cancelar Pedido #${pedidoId}</h2>
+      <p style="text-align:center; color:#6b7280; margin-bottom:1.5rem;">Indique el motivo de la cancelación (el stock se devolverá automáticamente)</p>
+      <form id="cancelAdminForm" onsubmit="handleCancelAdminOrder(event)">
+        <div class="form-group">
+          <label for="cancelAdminMotivo">Motivo *</label>
+          <textarea id="cancelAdminMotivo" required placeholder="Ej: Cliente no responde, producto defectuoso, etc." aria-label="Motivo de cancelación"></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-danger" id="btnConfirmCancelAdmin">Confirmar cancelación</button>
+          <button type="button" class="btn btn-secondary" onclick="closeCancelAdminModal()">Cerrar</button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function closeCancelAdminModal() {
+  const overlay = document.getElementById('cancelAdminModalOverlay');
+  overlay.style.display = 'none';
+  overlay.innerHTML = '';
+  state.cancelAdminOrderId = null;
+}
+
+async function handleCancelAdminOrder(e) {
+  e.preventDefault();
+
+  if (!state.cancelAdminOrderId) return;
+
+  const motivo = document.getElementById('cancelAdminMotivo').value.trim();
+  if (!motivo) {
+    showToast('El motivo es obligatorio', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmCancelAdmin');
+  btn.disabled = true; btn.textContent = 'Cancelando...';
+
+  try {
+    const res = await fetchAPI('/admin/pedidos', {
+      method: 'PUT',
+      body: JSON.stringify({ id: state.cancelAdminOrderId, accion: 'cancelar', motivo })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast('Pedido cancelado y stock devuelto correctamente.', 'success');
+      closeCancelAdminModal();
+      loadAdminOrders();
+      loadAdminProducts(); // Refrescar stock en inventario
+    } else {
+      showToast(res.data.error || 'Error al cancelar el pedido', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar cancelación';
+  }
+}
+
+// ---------- ADMIN INVENTARIO ----------
+async function loadAdminProducts() {
+  const stockBajo = document.getElementById('filterStockBajo')?.checked || false;
+  const bodyEl = document.getElementById('adminProductsBody');
+  const emptyEl = document.getElementById('adminProductsEmpty');
+
+  bodyEl.innerHTML = '<tr><td colspan="8" class="loading">Cargando productos...</td></tr>';
+  emptyEl.style.display = 'none';
+
+  try {
+    const res = await fetchAPI(`/admin/productos?${stockBajo ? 'stock_bajo=true&' : ''}estado=activo`);
+    if (res.ok && res.data) {
+      state.adminProducts = res.data;
+      renderAdminProducts();
+    } else {
+      bodyEl.innerHTML = '<tr><td colspan="8" class="error">Error al cargar productos.</td></tr>';
+    }
+  } catch (e) {
+    bodyEl.innerHTML = '<tr><td colspan="8" class="error">Error de conexión.</td></tr>';
+  }
+}
+
+function renderAdminProducts() {
+  const bodyEl = document.getElementById('adminProductsBody');
+  const emptyEl = document.getElementById('adminProductsEmpty');
+
+  if (state.adminProducts.length === 0) {
+    bodyEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  bodyEl.innerHTML = state.adminProducts.map(p => {
+    let stockClass = 'stock-ok';
+    let stockLabel = 'OK';
+    if (p.stock === 0) { stockClass = 'stock-out'; stockLabel = 'Sin stock'; }
+    else if (p.stock_bajo) { stockClass = 'stock-low'; stockLabel = 'Bajo'; }
+
+    return `
+      <tr class="${p.stock_bajo ? 'stock-low' : ''}">
+        <td>${p.id}</td>
+        <td>
+          <div style="font-weight:600;">${p.nombre}</div>
+          ${p.descripcion ? `<div style="font-size:0.75rem;color:#6b7280;">${p.descripcion}</div>` : ''}
+        </td>
+        <td>${p.categoria_nombre || 'Sin categoría'}</td>
+        <td>S/ ${p.precio.toFixed(2)}</td>
+        <td><span class="stock-badge ${stockClass}">${p.stock} (${stockLabel})</span></td>
+        <td>${p.stock_minimo}</td>
+        <td>
+          <label class="estado-toggle">
+            <input type="checkbox" ${p.estado === 'activo' ? 'checked' : ''} onchange="toggleProductEstado(${p.id}, this.checked)">
+            <span>${p.estado === 'activo' ? 'Activo' : 'Inactivo'}</span>
+          </label>
+        </td>
+        <td>
+          <div style="display:flex; gap:0.25rem;">
+            <button class="btn-small" onclick="openProductModal(${p.id})" title="Editar">✏️</button>
+            <button class="btn-small btn-cancel" onclick="toggleProductEstado(${p.id}, ${p.estado !== 'activo'})" title="${p.estado === 'activo' ? 'Desactivar' : 'Activar'}">
+              ${p.estado === 'activo' ? '🗑️' : '✅'}
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function toggleProductEstado(productoId, activar) {
+  try {
+    const res = await fetchAPI('/admin/productos', {
+      method: 'PUT',
+      body: JSON.stringify({ id: productoId, accion: 'cambiar_estado', estado: activar ? 'activo' : 'inactivo' })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast(res.data.message, 'success');
+      loadAdminProducts();
+    } else {
+      showToast(res.data.error || 'Error al cambiar estado', 'error');
+      loadAdminProducts(); // Recargar para revertir UI
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+    loadAdminProducts();
+  }
+}
+
+// Modal Producto (crear/editar)
+function openProductModal(productoId = null) {
+  state.editingProductId = productoId;
+  const isEditing = productoId !== null;
+
+  // Obtener categorías para el select
+  const categoriasOptions = state.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  let producto = null;
+  if (isEditing) {
+    producto = state.adminProducts.find(p => p.id === productoId);
+  }
+
+  const overlay = document.getElementById('productModalOverlay');
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>${isEditing ? '✏️ Editar Producto' : '➕ Nuevo Producto'}</h2>
+      <form id="productForm" onsubmit="handleProductSubmit(event)">
+        <div class="form-group">
+          <label for="productCategoria">Categoría *</label>
+          <select id="productCategoria" required>
+            <option value="">Seleccionar categoría</option>
+            ${categoriasOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="productNombre">Nombre *</label>
+          <input type="text" id="productNombre" required placeholder="Ej: Coca Cola 500ml" />
+        </div>
+        <div class="form-group">
+          <label for="productDescripcion">Descripción</label>
+          <textarea id="productDescripcion" placeholder="Descripción del producto"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label for="productPrecio">Precio (S/) *</label>
+            <input type="number" id="productPrecio" step="0.01" min="0" required placeholder="1.50" />
+          </div>
+          <div class="form-group">
+            <label for="productStock">Stock *</label>
+            <input type="number" id="productStock" min="0" required placeholder="100" />
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label for="productStockMin">Stock Mínimo</label>
+            <input type="number" id="productStockMin" min="0" placeholder="10" />
+          </div>
+          <div class="form-group">
+            <label for="productImagen">URL Imagen</label>
+            <input type="text" id="productImagen" placeholder="/img/producto.png" />
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary">${isEditing ? 'Guardar cambios' : 'Crear producto'}</button>
+          <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  // Llenar datos si es edición
+  if (isEditing && producto) {
+    document.getElementById('productCategoria').value = producto.categoria_id || '';
+    document.getElementById('productNombre').value = producto.nombre;
+    document.getElementById('productDescripcion').value = producto.descripcion || '';
+    document.getElementById('productPrecio').value = producto.precio;
+    document.getElementById('productStock').value = producto.stock;
+    document.getElementById('productStockMin').value = producto.stock_minimo;
+    document.getElementById('productImagen').value = producto.imagen_url || '';
+  }
+}
+
+function closeProductModal() {
+  const overlay = document.getElementById('productModalOverlay');
+  overlay.style.display = 'none';
+  overlay.innerHTML = '';
+  state.editingProductId = null;
+}
+
+async function handleProductSubmit(e) {
+  e.preventDefault();
+
+  const isEditing = state.editingProductId !== null;
+  const categoria_id = parseInt(document.getElementById('productCategoria').value, 10);
+  const nombre = document.getElementById('productNombre').value.trim();
+  const descripcion = document.getElementById('productDescripcion').value.trim();
+  const precio = parseFloat(document.getElementById('productPrecio').value);
+  const stock = parseInt(document.getElementById('productStock').value, 10);
+  const stock_minimo = parseInt(document.getElementById('productStockMin').value, 10) || 0;
+  const imagen_url = document.getElementById('productImagen').value.trim();
+
+  if (!categoria_id || !nombre || isNaN(precio) || isNaN(stock)) {
+    showToast('Complete todos los campos obligatorios', 'error');
+    return;
+  }
+
+  const btn = document.querySelector('#productForm .btn-primary');
+  btn.disabled = true; btn.textContent = isEditing ? 'Guardando...' : 'Creando...';
+
+  try {
+    const endpoint = isEditing ? '/admin/productos' : '/admin/productos';
+    const method = isEditing ? 'PUT' : 'POST';
+    const body = isEditing
+      ? { id: state.editingProductId, categoria_id, nombre, descripcion, precio, stock, stock_minimo, imagen_url }
+      : { categoria_id, nombre, descripcion, precio, stock, stock_minimo, imagen_url };
+
+    const res = await fetchAPI(endpoint, { method, body: JSON.stringify(body) });
+
+    if (res.ok && res.data.success) {
+      showToast(isEditing ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.', 'success');
+      closeProductModal();
+      loadAdminProducts();
+    } else {
+      showToast(res.data.error || 'Error al guardar producto', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = isEditing ? 'Guardar cambios' : 'Crear producto';
+  }
+}
+
+// ---------- ADMIN CATEGORÍAS ----------
+async function loadAdminCategories() {
+  const listEl = document.getElementById('categoriesList');
+
+  listEl.innerHTML = '<p class="loading">Cargando categorías...</p>';
+
+  try {
+    const res = await fetchAPI('/admin/categorias');
+    if (res.ok && res.data) {
+      state.adminCategories = res.data;
+      renderAdminCategories();
+    } else {
+      listEl.innerHTML = '<p class="error">Error al cargar categorías.</p>';
+    }
+  } catch (e) {
+    listEl.innerHTML = '<p class="error">Error de conexión.</p>';
+  }
+}
+
+function renderAdminCategories() {
+  const listEl = document.getElementById('categoriesList');
+
+  if (state.adminCategories.length === 0) {
+    listEl.innerHTML = '<p style="text-align:center;color:#6b7280;">No hay categorías. Cree una nueva.</p>';
+    return;
+  }
+
+  listEl.innerHTML = state.adminCategories.map(cat => `
+    <div class="category-item ${cat.estado === 'inactivo' ? 'inactive' : ''}">
+      <div class="category-info">
+        <span class="category-name">${cat.nombre}</span>
+        <span class="category-status">
+          <span class="estado-badge estado-${cat.estado}">${cat.estado}</span>
+        </span>
+      </div>
+      <div class="category-actions">
+        <button class="btn-small" onclick="openCategoryModal(${cat.id})" title="Editar">✏️</button>
+        <button class="btn-small ${cat.estado === 'activo' ? 'btn-cancel' : 'btn-primary'}" onclick="toggleCategoryEstado(${cat.id}, '${cat.estado === 'activo' ? 'inactivo' : 'activo'}')">
+          ${cat.estado === 'activo' ? 'Desactivar' : 'Activar'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleCategoryEstado(categoriaId, nuevoEstado) {
+  try {
+    const res = await fetchAPI('/admin/categorias', {
+      method: 'PUT',
+      body: JSON.stringify({ id: categoriaId, accion: 'cambiar_estado', estado: nuevoEstado })
+    });
+
+    if (res.ok && res.data.success) {
+      showToast(res.data.message, 'success');
+      loadAdminCategories();
+      loadAdminProducts(); // Refrescar productos por si cambia la categoría
+    } else {
+      showToast(res.data.error || 'Error al cambiar estado', 'error');
+      loadAdminCategories();
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+    loadAdminCategories();
+  }
+}
+
+// Modal Categoría (crear/editar)
+function openCategoryModal(categoriaId = null) {
+  state.editingCategoryId = categoriaId;
+  const isEditing = categoriaId !== null;
+
+  let categoria = null;
+  if (isEditing) {
+    categoria = state.adminCategories.find(c => c.id === categoriaId);
+  }
+
+  const overlay = document.getElementById('categoryModalOverlay');
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:420px;">
+      <h2>${isEditing ? '✏️ Editar Categoría' : '➕ Nueva Categoría'}</h2>
+      <form id="categoryForm" onsubmit="handleCategorySubmit(event)">
+        <div class="form-group">
+          <label for="categoryNombre">Nombre *</label>
+          <input type="text" id="categoryNombre" required placeholder="Ej: Bebidas" />
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary">${isEditing ? 'Guardar cambios' : 'Crear categoría'}</button>
+          <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  if (isEditing && categoria) {
+    document.getElementById('categoryNombre').value = categoria.nombre;
+  }
+}
+
+function closeCategoryModal() {
+  const overlay = document.getElementById('categoryModalOverlay');
+  overlay.style.display = 'none';
+  overlay.innerHTML = '';
+  state.editingCategoryId = null;
+}
+
+async function handleCategorySubmit(e) {
+  e.preventDefault();
+
+  const isEditing = state.editingCategoryId !== null;
+  const nombre = document.getElementById('categoryNombre').value.trim();
+
+  if (!nombre) {
+    showToast('El nombre es obligatorio', 'error');
+    return;
+  }
+
+  const btn = document.querySelector('#categoryForm .btn-primary');
+  btn.disabled = true; btn.textContent = isEditing ? 'Guardando...' : 'Creando...';
+
+  try {
+    const endpoint = '/admin/categorias';
+    const method = isEditing ? 'PUT' : 'POST';
+    const body = isEditing
+      ? { id: state.editingCategoryId, nombre }
+      : { nombre };
+
+    const res = await fetchAPI(endpoint, { method, body: JSON.stringify(body) });
+
+    if (res.ok && res.data.success) {
+      showToast(isEditing ? 'Categoría actualizada correctamente.' : 'Categoría creada correctamente.', 'success');
+      closeCategoryModal();
+      loadAdminCategories();
+    } else {
+      showToast(res.data.error || 'Error al guardar categoría', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error de conexión', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = isEditing ? 'Guardar cambios' : 'Crear categoría';
+  }
+}
+
 // ---------- DB Status (legacy) ----------
 async function checkStatus() {
   const statusEl = document.getElementById('status');
@@ -1003,3 +1583,20 @@ window.closeCancelModal = closeCancelModal;
 window.handleCancelOrder = handleCancelOrder;
 window.handleProfileUpdate = handleProfileUpdate;
 window.openPaymentModalFromOrder = openPaymentModalFromOrder;
+// Admin
+window.switchAdminTab = switchAdminTab;
+window.changeAdminPage = changeAdminPage;
+window.advanceOrderState = advanceOrderState;
+window.openCancelAdminModal = openCancelAdminModal;
+window.closeCancelAdminModal = closeCancelAdminModal;
+window.handleCancelAdminOrder = handleCancelAdminOrder;
+window.loadAdminProducts = loadAdminProducts;
+window.toggleProductEstado = toggleProductEstado;
+window.openProductModal = openProductModal;
+window.closeProductModal = closeProductModal;
+window.handleProductSubmit = handleProductSubmit;
+window.loadAdminCategories = loadAdminCategories;
+window.toggleCategoryEstado = toggleCategoryEstado;
+window.openCategoryModal = openCategoryModal;
+window.closeCategoryModal = closeCategoryModal;
+window.handleCategorySubmit = handleCategorySubmit;

@@ -42,6 +42,10 @@ module.exports = async (req, res) => {
     `);
     resultado.tablas_creadas.push('usuarios');
 
+    // Asegurar columnas telefono y direccion en tabla existente (migración)
+    await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefono VARCHAR(50);`);
+    await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS direccion TEXT;`);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS categorias (
         id SERIAL PRIMARY KEY,

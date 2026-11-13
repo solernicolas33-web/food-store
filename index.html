@@ -762,6 +762,175 @@
     }
     .empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5; }
 
+    /* ========== PANEL EMPLEADO ========== */
+    .admin-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+    .admin-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+    .admin-tab.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+    .admin-tab:hover { color: #1d4ed8; }
+    .admin-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .admin-tab-panel { display: none; }
+    .admin-tab-panel.active { display: block; }
+
+    /* Filtros de pedidos admin */
+    .admin-filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      align-items: flex-end;
+    }
+    .admin-filter-group { flex: 1; min-width: 180px; }
+    .admin-filter-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+    .admin-filter-group select {
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+    }
+    .admin-filter-group select:focus { outline: none; border-color: #2563eb; }
+
+    /* Tabla de pedidos admin */
+    .admin-orders-table { overflow-x: auto; }
+    .admin-orders-table table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .admin-orders-table th,
+    .admin-orders-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .admin-orders-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+    .admin-orders-table tr:hover { background: #f9fafb; }
+    .admin-orders-table .estado-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .estado-pendiente { background: #fef3c7; color: #92400e; }
+    .estado-confirmado { background: #dbeafe; color: #1e40af; }
+    .estado-en_preparacion { background: #e0e7ff; color: #3730a3; }
+    .estado-en_camino { background: #fef3c7; color: #92400e; }
+    .estado-entregado { background: #d1fae5; color: #065f46; }
+    .estado-cancelado { background: #fee2e2; color: #991b1b; }
+    .admin-orders-table .btn-small { padding: 0.4rem 0.75rem; font-size: 0.75rem; }
+    .admin-orders-table .btn-next { background: #2563eb; color: #fff; }
+    .admin-orders-table .btn-next:hover:not(:disabled) { background: #1d4ed8; }
+    .admin-orders-table .btn-cancel { background: #ef4444; color: #fff; }
+    .admin-orders-table .btn-cancel:hover:not(:disabled) { background: #dc2626; }
+    .admin-orders-table .btn-small:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+    .pagination button { padding: 0.5rem 1rem; border: 1px solid #d1d5db; background: #fff; border-radius: 8px; cursor: pointer; }
+    .pagination button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Inventario - tabla de productos */
+    .inventory-toolbar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .inventory-toolbar .btn-primary { background: #2563eb; color: #fff; padding: 0.6rem 1.25rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .inventory-toolbar .btn-primary:hover { background: #1d4ed8; }
+    .inventory-toolbar .btn-secondary { background: #f3f4f6; color: #111827; padding: 0.6rem 1.25rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .inventory-toolbar .btn-secondary:hover { background: #e5e7eb; }
+
+    .inventory-table { overflow-x: auto; }
+    .inventory-table table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .inventory-table th,
+    .inventory-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .inventory-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+    .inventory-table tr:hover { background: #f9fafb; }
+    .inventory-table tr.stock-low { background: #fef3c7; }
+    .stock-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+    .stock-ok { background: #d1fae5; color: #065f46; }
+    .stock-low { background: #fef3c7; color: #92400e; }
+    .stock-out { background: #fee2e2; color: #991b1b; }
+    .estado-toggle { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .estado-toggle input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #10b981; }
+
+    /* Categorías */
+    .categories-section { margin-top: 2rem; }
+    .categories-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .category-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .category-item.inactive { opacity: 0.6; background: #f9fafb; }
+    .category-info { display: flex; flex-direction: column; gap: 0.25rem; }
+    .category-name { font-weight: 600; color: #111827; }
+    .category-status { font-size: 0.75rem; }
+    .category-actions { display: flex; gap: 0.5rem; }
+    .category-actions .btn-small { padding: 0.4rem 0.75rem; font-size: 0.75rem; }
+
+    /* Modal genérico para formularios */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      animation: slideUp 0.3s ease;
+    }
+    .modal h2 { font-size: 1.5rem; color: #111827; margin-bottom: 1.5rem; text-align: center; }
+    .modal .form-group { margin-bottom: 1rem; }
+    .modal label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+    .modal input,
+    .modal select,
+    .modal textarea {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .modal input:focus,
+    .modal select:focus,
+    .modal textarea:focus { outline: none; border-color: #2563eb; }
+    .modal textarea { min-height: 80px; resize: vertical; }
+    .modal .btn-group { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .modal .btn { flex: 1; padding: 0.85rem; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+    .modal .btn-primary { background: #2563eb; color: #fff; }
+    .modal .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+    .modal .btn-secondary { background: #f3f4f6; color: #111827; }
+    .modal .btn-secondary:hover:not(:disabled) { background: #e5e7eb; }
+    .modal .btn-danger { background: #ef4444; color: #fff; }
+    .modal .btn-danger:hover:not(:disabled) { background: #dc2626; }
+    .modal .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Modal cancelar admin */
+    .cancel-admin-modal .modal { max-width: 420px; }
+
     footer { text-align: center; padding: 2rem; color: #6b7280; font-size: 0.85rem; border-top: 1px solid #e5e7eb; }
   </style>
 </head>
@@ -927,6 +1096,109 @@
       </div>
     </section>
 
+    <!-- ========== PANEL EMPLEADO (solo empleado/superadmin) ========== -->
+    <section class="admin-section" id="adminSection" style="display:none;">
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('admin-pedidos')">📋 Pedidos</button>
+        <button class="admin-tab" onclick="switchAdminTab('admin-inventario')">📦 Inventario y Categorías</button>
+      </div>
+
+      <div id="msg-admin" class="msg"></div>
+
+      <!-- PEDIDOS ADMIN -->
+      <div id="panel-admin-pedidos" class="admin-tab-panel active">
+        <h2>Gestión de Pedidos</h2>
+        <div class="admin-filters">
+          <div class="admin-filter-group">
+            <label for="adminFilterEstado">Filtrar por estado</label>
+            <select id="adminFilterEstado" onchange="loadAdminOrders()">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="en_preparacion">En preparación</option>
+              <option value="en_camino">En camino</option>
+              <option value="entregado">Entregado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="admin-filter-group" style="flex: 0 0 auto;">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" onclick="loadAdminOrders()" style="width: 100%;">🔄 Refrescar</button>
+          </div>
+        </div>
+
+        <div class="admin-orders-table">
+          <table id="adminOrdersTable">
+            <thead>
+              <tr>
+                <th># Pedido</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrdersBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="adminPagination"></div>
+        <div id="adminOrdersEmpty" class="empty-state" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          <p>No hay pedidos con los filtros seleccionados</p>
+        </div>
+      </div>
+
+      <!-- INVENTARIO Y CATEGORÍAS ADMIN -->
+      <div id="panel-admin-inventario" class="admin-tab-panel">
+        <h2>Inventario</h2>
+        <div class="inventory-toolbar">
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="openProductModal()">➕ Nuevo Producto</button>
+            <button class="btn-secondary" onclick="loadAdminProducts()">🔄 Refrescar</button>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #374151;">
+              <input type="checkbox" id="filterStockBajo" onchange="loadAdminProducts()"> Solo stock bajo
+            </label>
+          </div>
+        </div>
+
+        <div class="inventory-table">
+          <table id="adminProductsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Stock Mín.</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsBody"></tbody>
+          </table>
+        </div>
+        <div id="adminProductsEmpty" class="empty-state" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <p>No hay productos</p>
+        </div>
+
+        <!-- CATEGORÍAS -->
+        <div class="categories-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Categorías</h3>
+            <button class="btn-primary" onclick="openCategoryModal()">➕ Nueva Categoría</button>
+          </div>
+          <div class="categories-list" id="categoriesList"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ========== HERRAMIENTAS BD ========== -->
     <section class="tools-section">
       <div class="tools-card">
@@ -989,6 +1261,15 @@
   <footer>
     Food Store · Proyecto de Organización Empresarial · Pagos 100% simulados
   </footer>
+
+  <!-- Modal Producto -->
+  <div id="productModalOverlay" class="modal-overlay" style="display:none;"></div>
+
+  <!-- Modal Categoría -->
+  <div id="categoryModalOverlay" class="modal-overlay" style="display:none;"></div>
+
+  <!-- Modal Cancelar Pedido Admin -->
+  <div id="cancelAdminModalOverlay" class="modal-overlay cancel-admin-modal" style="display:none;"></div>
 
   <script src="app.js"></script>
 </body>
