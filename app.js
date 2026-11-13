@@ -215,153 +215,162 @@ async function checkSession() {
 }
 
 function updateAuthUI(user) {
-  const guestEl = document.getElementById('auth-header-guest');
-  const authEl = document.getElementById('auth-header');
-  const authSection = document.getElementById('authSection');
-  const cartBtn = document.getElementById('btnCartToggle');
-  const filtersSection = document.getElementById('filtersSection');
-  const productsSection = document.getElementById('productsSection');
-  const checkoutLoginPrompt = document.getElementById('checkoutLoginPrompt');
-  const checkoutForm = document.getElementById('checkoutForm');
-  const ordersSection = document.getElementById('ordersSection');
-  const adminSection = document.getElementById('adminSection');
-  const tabSuperadmin = document.getElementById('tabSuperadmin');
-  const mainNav = document.getElementById('mainNav');
+  // Safe getElementById wrapper - returns element or null
+  const $ = (id) => document.getElementById(id);
+
+  const guestEl = $('auth-header-guest');
+  const authEl = $('auth-header');
+  const authSection = $('authSection');
+  const cartBtn = $('btnCartToggle');
+  const filtersSection = $('filtersSection');
+  const productsSection = $('productsSection');
+  const checkoutLoginPrompt = $('checkoutLoginPrompt');
+  const checkoutForm = $('checkoutForm');
+  const ordersSection = $('ordersSection');
+  const adminSection = $('adminSection');
+  const tabSuperadmin = $('tabSuperadmin');
+  const mainNav = $('mainNav');
 
   // Navigation tabs
-  const navCatalogo = document.getElementById('navCatalogo');
-  const navMisPedidos = document.getElementById('navMisPedidos');
-  const navMiPerfil = document.getElementById('navMiPerfil');
-  const navPanelEmpleado = document.getElementById('navPanelEmpleado');
-  const navPanelSuperadmin = document.getElementById('navPanelSuperadmin');
+  const navCatalogo = $('navCatalogo');
+  const navMisPedidos = $('navMisPedidos');
+  const navMiPerfil = $('navMiPerfil');
+  const navPanelEmpleado = $('navPanelEmpleado');
+  const navPanelSuperadmin = $('navPanelSuperadmin');
+
+  // Normalize role for case-insensitive comparison
+  const userRole = user ? String(user.rol).toLowerCase() : '';
 
   if (user) {
-    guestEl.style.display = 'none';
-    authEl.style.display = 'flex';
-    document.getElementById('user-name').textContent = user.nombre;
-    const badge = document.getElementById('user-badge');
-    badge.textContent = user.rol;
-    badge.className = `user-badge badge-${user.rol}`;
-    authSection.style.display = 'none';
-    cartBtn.style.display = 'flex';
-    filtersSection.style.display = 'block';
-    mainNav.style.display = 'flex'; // Show navigation bar
+    if (guestEl) guestEl.style.display = 'none';
+    if (authEl) authEl.style.display = 'flex';
+    const userNameEl = $('user-name');
+    if (userNameEl) userNameEl.textContent = user.nombre;
+    const badge = $('user-badge');
+    if (badge) {
+      badge.textContent = user.rol;
+      badge.className = `user-badge badge-${userRole}`;
+    }
+    if (authSection) authSection.style.display = 'none';
+    if (cartBtn) cartBtn.style.display = 'flex';
+    if (filtersSection) filtersSection.style.display = 'block';
+    if (mainNav) mainNav.style.display = 'flex';
 
-    // Configure navigation tabs based on role
-    if (user.rol === 'cliente') {
-      // Cliente: Catálogo, Mis Pedidos, Mi Perfil
-      navCatalogo.style.display = 'inline-block';
-      navMisPedidos.style.display = 'inline-block';
-      navMiPerfil.style.display = 'inline-block';
-      navPanelEmpleado.style.display = 'none';
-      navPanelSuperadmin.style.display = 'none';
+    // Configure navigation tabs based on role (case-insensitive)
+    if (userRole === 'cliente') {
+      if (navCatalogo) navCatalogo.style.display = 'inline-block';
+      if (navMisPedidos) navMisPedidos.style.display = 'inline-block';
+      if (navMiPerfil) navMiPerfil.style.display = 'inline-block';
+      if (navPanelEmpleado) navPanelEmpleado.style.display = 'none';
+      if (navPanelSuperadmin) navPanelSuperadmin.style.display = 'none';
       if (tabSuperadmin) tabSuperadmin.style.display = 'none';
 
-      // Show catalogo by default
       showSection('catalogo');
-      checkoutLoginPrompt.style.display = 'none';
-      checkoutForm.classList.add('visible');
-      ordersSection.style.display = 'none'; // Will be shown by showSection
-      adminSection.style.display = 'none';
+      if (checkoutLoginPrompt) checkoutLoginPrompt.style.display = 'none';
+      if (checkoutForm) checkoutForm.classList.add('visible');
+      if (ordersSection) ordersSection.style.display = 'none';
+      if (adminSection) adminSection.style.display = 'none';
 
-    } else if (user.rol === 'empleado' || user.rol === 'superadmin') {
-      // Empleado/Superadmin: Catálogo, Panel Empleado, (Panel Superadmin)
-      navCatalogo.style.display = 'inline-block';
-      navMisPedidos.style.display = 'none';
-      navMiPerfil.style.display = 'none';
-      navPanelEmpleado.style.display = 'inline-block';
-      navPanelSuperadmin.style.display = user.rol === 'superadmin' ? 'inline-block' : 'none';
+    } else if (userRole === 'empleado' || userRole === 'superadmin') {
+      if (navCatalogo) navCatalogo.style.display = 'inline-block';
+      if (navMisPedidos) navMisPedidos.style.display = 'none';
+      if (navMiPerfil) navMiPerfil.style.display = 'none';
+      if (navPanelEmpleado) navPanelEmpleado.style.display = 'inline-block';
+      if (navPanelSuperadmin) navPanelSuperadmin.style.display = userRole === 'superadmin' ? 'inline-block' : 'none';
       if (tabSuperadmin) {
-        tabSuperadmin.style.display = user.rol === 'superadmin' ? 'inline-block' : 'none';
+        tabSuperadmin.style.display = userRole === 'superadmin' ? 'inline-block' : 'none';
       }
 
-      // Show catalogo by default
       showSection('catalogo');
-      checkoutLoginPrompt.style.display = 'block';
-      checkoutForm.classList.remove('visible');
-      ordersSection.style.display = 'none';
-      adminSection.style.display = 'none'; // Will be shown by showSection
+      if (checkoutLoginPrompt) checkoutLoginPrompt.style.display = 'block';
+      if (checkoutForm) checkoutForm.classList.remove('visible');
+      if (ordersSection) ordersSection.style.display = 'none';
+      if (adminSection) adminSection.style.display = 'none';
 
     } else {
       // Fallback
-      navCatalogo.style.display = 'inline-block';
-      navMisPedidos.style.display = 'none';
-      navMiPerfil.style.display = 'none';
-      navPanelEmpleado.style.display = 'none';
-      navPanelSuperadmin.style.display = 'none';
+      if (navCatalogo) navCatalogo.style.display = 'inline-block';
+      if (navMisPedidos) navMisPedidos.style.display = 'none';
+      if (navMiPerfil) navMiPerfil.style.display = 'none';
+      if (navPanelEmpleado) navPanelEmpleado.style.display = 'none';
+      if (navPanelSuperadmin) navPanelSuperadmin.style.display = 'none';
       if (tabSuperadmin) tabSuperadmin.style.display = 'none';
       showSection('catalogo');
-      checkoutLoginPrompt.style.display = 'block';
-      checkoutForm.classList.remove('visible');
-      ordersSection.style.display = 'none';
-      adminSection.style.display = 'none';
+      if (checkoutLoginPrompt) checkoutLoginPrompt.style.display = 'block';
+      if (checkoutForm) checkoutForm.classList.remove('visible');
+      if (ordersSection) ordersSection.style.display = 'none';
+      if (adminSection) adminSection.style.display = 'none';
     }
   } else {
-    guestEl.style.display = 'block';
-    authEl.style.display = 'none';
-    authSection.style.display = 'block';
-    cartBtn.style.display = 'none';
-    filtersSection.style.display = 'block';
-    mainNav.style.display = 'none'; // Hide navigation bar
-    productsSection.classList.add('visible');
+    if (guestEl) guestEl.style.display = 'block';
+    if (authEl) authEl.style.display = 'none';
+    if (authSection) authSection.style.display = 'block';
+    if (cartBtn) cartBtn.style.display = 'none';
+    if (filtersSection) filtersSection.style.display = 'block';
+    if (mainNav) mainNav.style.display = 'none';
+    if (productsSection) productsSection.classList.add('visible');
     loadProducts();
-    checkoutLoginPrompt.style.display = 'block';
-    checkoutForm.classList.remove('visible');
-    ordersSection.style.display = 'none';
-    adminSection.style.display = 'none';
+    if (checkoutLoginPrompt) checkoutLoginPrompt.style.display = 'block';
+    if (checkoutForm) checkoutForm.classList.remove('visible');
+    if (ordersSection) ordersSection.style.display = 'none';
+    if (adminSection) adminSection.style.display = 'none';
     if (tabSuperadmin) tabSuperadmin.style.display = 'none';
   }
 }
 
-// Función para mostrar/ocultar secciones principales - FORZAR display explícitamente
+// Función para mostrar/ocultar secciones principales - FORZAR display explícitamente con checks de seguridad
 function showSection(section) {
-  const productsSection = document.getElementById('productsSection');
-  const ordersSection = document.getElementById('ordersSection');
-  const adminSection = document.getElementById('adminSection');
-  const navCatalogo = document.getElementById('navCatalogo');
-  const navMisPedidos = document.getElementById('navMisPedidos');
-  const navMiPerfil = document.getElementById('navMiPerfil');
-  const navPanelEmpleado = document.getElementById('navPanelEmpleado');
-  const navPanelSuperadmin = document.getElementById('navPanelSuperadmin');
+  const $ = (id) => document.getElementById(id);
 
-  // Reset all nav tabs
+  const productsSection = $('productsSection');
+  const ordersSection = $('ordersSection');
+  const adminSection = $('adminSection');
+  const navCatalogo = $('navCatalogo');
+  const navMisPedidos = $('navMisPedidos');
+  const navMiPerfil = $('navMiPerfil');
+  const navPanelEmpleado = $('navPanelEmpleado');
+  const navPanelSuperadmin = $('navPanelSuperadmin');
+
+  // Reset all nav tabs safely
   [navCatalogo, navMisPedidos, navMiPerfil, navPanelEmpleado, navPanelSuperadmin].forEach(tab => {
     if (tab) tab.classList.remove('active');
   });
 
-  // FORZAR ocultar todas las secciones principales con style.display explícito
-  productsSection.style.display = 'none';
-  productsSection.classList.remove('visible');
-  ordersSection.style.display = 'none';
-  adminSection.style.display = 'none';
+  // FORZAR ocultar todas las secciones principales con style.display explícito (safe)
+  if (productsSection) {
+    productsSection.style.display = 'none';
+    productsSection.classList.remove('visible');
+  }
+  if (ordersSection) ordersSection.style.display = 'none';
+  if (adminSection) adminSection.style.display = 'none';
 
-  // Show selected section - FORZAR display explícito
+  // Show selected section - FORZAR display explícito (safe)
   switch (section) {
     case 'catalogo':
-      productsSection.style.display = 'block';
-      productsSection.classList.add('visible');
+      if (productsSection) {
+        productsSection.style.display = 'block';
+        productsSection.classList.add('visible');
+      }
       if (navCatalogo) navCatalogo.classList.add('active');
       loadProducts();
       break;
     case 'mis-pedidos':
-      ordersSection.style.display = 'block';
+      if (ordersSection) ordersSection.style.display = 'block';
       if (navMisPedidos) navMisPedidos.classList.add('active');
-      // Load client tabs content
       switchClientTab(state.currentClientTab || 'mis-pedidos');
       break;
     case 'mi-perfil':
-      ordersSection.style.display = 'block';
+      if (ordersSection) ordersSection.style.display = 'block';
       if (navMiPerfil) navMiPerfil.classList.add('active');
       switchClientTab('mi-perfil');
       break;
     case 'panel-empleado':
-      adminSection.style.display = 'block';
+      if (adminSection) adminSection.style.display = 'block';
       if (navPanelEmpleado) navPanelEmpleado.classList.add('active');
-      // Load admin tab content
       switchAdminTab(state.currentAdminTab || 'admin-pedidos');
       break;
     case 'panel-superadmin':
-      adminSection.style.display = 'block';
+      if (adminSection) adminSection.style.display = 'block';
       if (navPanelSuperadmin) navPanelSuperadmin.classList.add('active');
       switchAdminTab('admin-superadmin');
       break;
@@ -667,7 +676,8 @@ function closePaymentModal() {
   });
 }
 
-// ---------- Toast de alta prioridad (z-index 9999, duración 4s+) ----------
+// ---------- Toast de alta prioridad (z-index 99999, duración 5s+) ----------
+// Anclado directamente al body para sobrevivir a la destrucción de modales
 function showPriorityToast(message, type = 'success') {
   // Remover toasts previos
   document.querySelectorAll('.toast-priority').forEach(t => t.remove());
@@ -676,13 +686,14 @@ function showPriorityToast(message, type = 'success') {
   toast.className = `toast toast-priority toast-${type}`;
   toast.textContent = message;
   toast.style.cssText = `
-    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    position: fixed; bottom: 20px; right: 20px; z-index: 99999;
     padding: 16px 28px; border-radius: 10px; font-weight: 600; font-size: 1rem;
     background: ${type === 'success' ? '#059669' : type === 'error' ? '#dc2626' : '#2563eb'};
     color: white; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     animation: slideIn 0.3s ease;
     max-width: 90vw;
   `;
+  // ANCLAJE DIRECTO AL BODY - NUNCA dentro del contenedor del modal
   document.body.appendChild(toast);
   
   // Auto-remove after 5 seconds
