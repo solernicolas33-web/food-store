@@ -313,7 +313,7 @@ function updateAuthUI(user) {
   }
 }
 
-// Función para mostrar/ocultar secciones principales
+// Función para mostrar/ocultar secciones principales - FORZAR display explícitamente
 function showSection(section) {
   const productsSection = document.getElementById('productsSection');
   const ordersSection = document.getElementById('ordersSection');
@@ -329,14 +329,16 @@ function showSection(section) {
     if (tab) tab.classList.remove('active');
   });
 
-  // Hide all sections
+  // FORZAR ocultar todas las secciones principales con style.display explícito
+  productsSection.style.display = 'none';
   productsSection.classList.remove('visible');
   ordersSection.style.display = 'none';
   adminSection.style.display = 'none';
 
-  // Show selected section
+  // Show selected section - FORZAR display explícito
   switch (section) {
     case 'catalogo':
+      productsSection.style.display = 'block';
       productsSection.classList.add('visible');
       if (navCatalogo) navCatalogo.classList.add('active');
       loadProducts();
@@ -652,6 +654,31 @@ function closePaymentModal() {
   currentPaymentOrderId = null;
 }
 
+// ---------- Toast de alta prioridad (z-index 9999, duración 4s+) ----------
+function showPriorityToast(message, type = 'success') {
+  // Remover toasts previos
+  document.querySelectorAll('.toast-priority').forEach(t => t.remove());
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-priority toast-${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 16px 28px; border-radius: 10px; font-weight: 600; font-size: 1rem;
+    background: ${type === 'success' ? '#059669' : type === 'error' ? '#dc2626' : '#2563eb'};
+    color: white; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease;
+    max-width: 90vw;
+  `;
+  document.body.appendChild(toast);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
 async function handlePaymentAction(pedidoId, accion) {
   const btnApprove = document.getElementById('btnApprovePayment');
   const btnReject = document.getElementById('btnRejectPayment');
@@ -672,13 +699,9 @@ async function handlePaymentAction(pedidoId, accion) {
 
     if (res.ok && res.data.success) {
       if (accion === 'aprobar') {
-        // Pago aprobado - mostrar éxito, actualizar catálogo, cerrar carrito y modal
-        resultMsg.className = 'result-message success';
-        resultMsg.textContent = `✅ ${res.data.message}`;
-        resultMsg.style.display = 'block';
-
-        showToast('¡Pago aprobado! Pedido confirmado y stock actualizado.', 'success');
-
+        // Pago aprobado - PRIMERO cerrar modal, LUEGO mostrar toast prioritario
+        closePaymentModal();
+        
         // Actualizar catálogo para reflejar nuevo stock
         await loadProducts();
 
@@ -688,11 +711,11 @@ async function handlePaymentAction(pedidoId, accion) {
         document.getElementById('checkoutTelefono').value = '';
         toggleCart(); // Cerrar panel del carrito
 
-        // Cerrar modal después de 2 segundos
-        setTimeout(() => closePaymentModal(), 2000);
+        // Mostrar toast PRIORITARIO (z-index 9999, 5 segundos)
+        showPriorityToast('¡Pago aprobado! Pedido confirmado y stock actualizado.', 'success');
 
       } else {
-        // Pago rechazado - mostrar mensaje y permitir reintentar
+        // Pago rechazado - mostrar mensaje en modal y permitir reintentar
         resultMsg.className = 'result-message error';
         resultMsg.textContent = `❌ ${res.data.message}`;
         resultMsg.style.display = 'block';
