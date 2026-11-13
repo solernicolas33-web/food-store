@@ -226,6 +226,14 @@ function updateAuthUI(user) {
   const ordersSection = document.getElementById('ordersSection');
   const adminSection = document.getElementById('adminSection');
   const tabSuperadmin = document.getElementById('tabSuperadmin');
+  const mainNav = document.getElementById('mainNav');
+
+  // Navigation tabs
+  const navCatalogo = document.getElementById('navCatalogo');
+  const navMisPedidos = document.getElementById('navMisPedidos');
+  const navMiPerfil = document.getElementById('navMiPerfil');
+  const navPanelEmpleado = document.getElementById('navPanelEmpleado');
+  const navPanelSuperadmin = document.getElementById('navPanelSuperadmin');
 
   if (user) {
     guestEl.style.display = 'none';
@@ -237,46 +245,56 @@ function updateAuthUI(user) {
     authSection.style.display = 'none';
     cartBtn.style.display = 'flex';
     filtersSection.style.display = 'block';
-    productsSection.classList.add('visible');
-    loadProducts();
-    // Checkout UI
+    mainNav.style.display = 'flex'; // Show navigation bar
+
+    // Configure navigation tabs based on role
     if (user.rol === 'cliente') {
+      // Cliente: Catálogo, Mis Pedidos, Mi Perfil
+      navCatalogo.style.display = 'inline-block';
+      navMisPedidos.style.display = 'inline-block';
+      navMiPerfil.style.display = 'inline-block';
+      navPanelEmpleado.style.display = 'none';
+      navPanelSuperadmin.style.display = 'none';
+      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
+
+      // Show catalogo by default
+      showSection('catalogo');
       checkoutLoginPrompt.style.display = 'none';
       checkoutForm.classList.add('visible');
-      ordersSection.style.display = 'block';
+      ordersSection.style.display = 'none'; // Will be shown by showSection
       adminSection.style.display = 'none';
-      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
-      // Cargar pedidos al cambiar a la pestaña
-      if (state.currentClientTab === 'mis-pedidos') {
-        loadMyOrders();
-      } else if (state.currentClientTab === 'mi-perfil') {
-        loadMyProfile();
-      }
+
     } else if (user.rol === 'empleado' || user.rol === 'superadmin') {
-      checkoutLoginPrompt.style.display = 'block';
-      checkoutForm.classList.remove('visible');
-      ordersSection.style.display = 'none';
-      adminSection.style.display = 'block';
-      // Mostrar/ocultar pestaña Superadmin
+      // Empleado/Superadmin: Catálogo, Panel Empleado, (Panel Superadmin)
+      navCatalogo.style.display = 'inline-block';
+      navMisPedidos.style.display = 'none';
+      navMiPerfil.style.display = 'none';
+      navPanelEmpleado.style.display = 'inline-block';
+      navPanelSuperadmin.style.display = user.rol === 'superadmin' ? 'inline-block' : 'none';
       if (tabSuperadmin) {
         tabSuperadmin.style.display = user.rol === 'superadmin' ? 'inline-block' : 'none';
       }
-      // Cargar panel de empleado
-      if (state.currentAdminTab === 'admin-pedidos') {
-        loadAdminOrders();
-      } else if (state.currentAdminTab === 'admin-inventario') {
-        loadAdminProducts();
-        loadAdminCategories();
-      } else if (state.currentAdminTab === 'admin-superadmin') {
-        loadSuperadminMetrics();
-        loadSuperadminUsers();
-      }
+
+      // Show catalogo by default
+      showSection('catalogo');
+      checkoutLoginPrompt.style.display = 'block';
+      checkoutForm.classList.remove('visible');
+      ordersSection.style.display = 'none';
+      adminSection.style.display = 'none'; // Will be shown by showSection
+
     } else {
+      // Fallback
+      navCatalogo.style.display = 'inline-block';
+      navMisPedidos.style.display = 'none';
+      navMiPerfil.style.display = 'none';
+      navPanelEmpleado.style.display = 'none';
+      navPanelSuperadmin.style.display = 'none';
+      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
+      showSection('catalogo');
       checkoutLoginPrompt.style.display = 'block';
       checkoutForm.classList.remove('visible');
       ordersSection.style.display = 'none';
       adminSection.style.display = 'none';
-      if (tabSuperadmin) tabSuperadmin.style.display = 'none';
     }
   } else {
     guestEl.style.display = 'block';
@@ -284,6 +302,7 @@ function updateAuthUI(user) {
     authSection.style.display = 'block';
     cartBtn.style.display = 'none';
     filtersSection.style.display = 'block';
+    mainNav.style.display = 'none'; // Hide navigation bar
     productsSection.classList.add('visible');
     loadProducts();
     checkoutLoginPrompt.style.display = 'block';
@@ -291,6 +310,59 @@ function updateAuthUI(user) {
     ordersSection.style.display = 'none';
     adminSection.style.display = 'none';
     if (tabSuperadmin) tabSuperadmin.style.display = 'none';
+  }
+}
+
+// Función para mostrar/ocultar secciones principales
+function showSection(section) {
+  const productsSection = document.getElementById('productsSection');
+  const ordersSection = document.getElementById('ordersSection');
+  const adminSection = document.getElementById('adminSection');
+  const navCatalogo = document.getElementById('navCatalogo');
+  const navMisPedidos = document.getElementById('navMisPedidos');
+  const navMiPerfil = document.getElementById('navMiPerfil');
+  const navPanelEmpleado = document.getElementById('navPanelEmpleado');
+  const navPanelSuperadmin = document.getElementById('navPanelSuperadmin');
+
+  // Reset all nav tabs
+  [navCatalogo, navMisPedidos, navMiPerfil, navPanelEmpleado, navPanelSuperadmin].forEach(tab => {
+    if (tab) tab.classList.remove('active');
+  });
+
+  // Hide all sections
+  productsSection.classList.remove('visible');
+  ordersSection.style.display = 'none';
+  adminSection.style.display = 'none';
+
+  // Show selected section
+  switch (section) {
+    case 'catalogo':
+      productsSection.classList.add('visible');
+      if (navCatalogo) navCatalogo.classList.add('active');
+      loadProducts();
+      break;
+    case 'mis-pedidos':
+      ordersSection.style.display = 'block';
+      if (navMisPedidos) navMisPedidos.classList.add('active');
+      // Load client tabs content
+      switchClientTab(state.currentClientTab || 'mis-pedidos');
+      break;
+    case 'mi-perfil':
+      ordersSection.style.display = 'block';
+      if (navMiPerfil) navMiPerfil.classList.add('active');
+      switchClientTab('mi-perfil');
+      break;
+    case 'panel-empleado':
+      adminSection.style.display = 'block';
+      if (navPanelEmpleado) navPanelEmpleado.classList.add('active');
+      // Load admin tab content
+      switchAdminTab(state.currentAdminTab || 'admin-pedidos');
+      break;
+    case 'panel-superadmin':
+      adminSection.style.display = 'block';
+      if (navPanelSuperadmin) navPanelSuperadmin.classList.add('active');
+      switchAdminTab('admin-superadmin');
+      break;
   }
 }
 
@@ -362,7 +434,10 @@ async function handleLogout() {
 function switchAuthTab(tab) {
   document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-  event.target.classList.add('active');
+  
+  const tabButton = document.querySelector(`.auth-tab[onclick*="${tab}"]`);
+  if (tabButton) tabButton.classList.add('active');
+  
   document.getElementById(`form-${tab}`).classList.add('active');
   hideMsg('msg-login'); hideMsg('msg-register');
 }
@@ -730,8 +805,14 @@ function switchClientTab(tab) {
   state.currentClientTab = tab;
   document.querySelectorAll('.client-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.client-tab-panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById(`panel-${tab}`).classList.add('active');
+  
+  // Update the tab buttons in the client-tabs div (inside orders section)
+  const tabButton = document.querySelector(`.client-tab[onclick*="${tab}"]`);
+  if (tabButton) tabButton.classList.add('active');
+  
+  const panel = document.getElementById(`panel-${tab}`);
+  if (panel) panel.classList.add('active');
+  
   hideMsg('msg-orders');
 
   if (tab === 'mis-pedidos') {
@@ -955,8 +1036,14 @@ function switchAdminTab(tab) {
   state.currentAdminTab = tab;
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById(`panel-${tab}`).classList.add('active');
+  
+  // Update the tab button
+  const tabButton = document.querySelector(`.admin-tab[onclick*="${tab}"]`);
+  if (tabButton) tabButton.classList.add('active');
+  
+  const panel = document.getElementById(`panel-${tab}`);
+  if (panel) panel.classList.add('active');
+  
   hideMsg('msg-admin');
 
   if (tab === 'admin-pedidos') {
@@ -1757,6 +1844,7 @@ window.closeCancelModal = closeCancelModal;
 window.handleCancelOrder = handleCancelOrder;
 window.handleProfileUpdate = handleProfileUpdate;
 window.openPaymentModalFromOrder = openPaymentModalFromOrder;
+window.showSection = showSection;
 // Admin
 window.switchAdminTab = switchAdminTab;
 window.changeAdminPage = changeAdminPage;

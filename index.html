@@ -40,6 +40,33 @@
       color: #111827;
       text-decoration: none;
     }
+
+    /* Navegación principal por rol */
+    .main-nav {
+      display: flex;
+      gap: 0.25rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #6b7280;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-tab.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+    .nav-tab:hover { color: #1d4ed8; }
+    .nav-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+
     .user-info {
       display: flex;
       align-items: center;
@@ -939,6 +966,15 @@
   <header>
     <div class="header-inner">
       <a href="#" class="brand" onclick="event.preventDefault(); location.reload();">🛒 Food Store</a>
+
+      <!-- Navegación principal (visible solo con sesión) -->
+      <nav id="mainNav" class="main-nav" style="display:none;">
+        <button class="nav-tab active" id="navCatalogo" onclick="showSection('catalogo')">🛒 Catálogo</button>
+        <button class="nav-tab" id="navMisPedidos" onclick="showSection('mis-pedidos')" style="display:none;">📦 Mis Pedidos</button>
+        <button class="nav-tab" id="navMiPerfil" onclick="showSection('mi-perfil')" style="display:none;">👤 Mi Perfil</button>
+        <button class="nav-tab" id="navPanelEmpleado" onclick="showSection('panel-empleado')" style="display:none;">👨‍💼 Panel Empleado</button>
+        <button class="nav-tab" id="navPanelSuperadmin" onclick="showSection('panel-superadmin')" style="display:none;">🔐 Panel Superadmin</button>
+      </nav>
 
       <div id="auth-header" class="user-info" style="display:none;">
         <span id="user-name"></span>
