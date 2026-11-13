@@ -69,6 +69,32 @@
     }
     .btn-logout:hover { background: #dc2626; }
 
+    /* Botón carrito en header */
+    .btn-cart-toggle {
+      position: relative;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-cart-toggle:hover { background: #1d4ed8; }
+    .cart-count {
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      min-width: 1.25rem;
+      text-align: center;
+    }
+
     /* ========== MAIN ========== */
     main {
       max-width: 1200px;
@@ -202,6 +228,282 @@
     }
     .quick-btn:hover { background: #e5e7eb; }
 
+    /* ========== FILTERS ========== */
+    .filters-section {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      margin-bottom: 2rem;
+    }
+    .filters-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .filter-group { flex: 1; min-width: 200px; }
+    .filter-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.4rem;
+    }
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+    }
+    .filter-group input:focus,
+    .filter-group select:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    /* ========== PRODUCTOS ========== */
+    .products-section {
+      display: none;
+    }
+    .products-section.visible { display: block; }
+    .products-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .product-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .product-image {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+    .product-card h3 { font-size: 1rem; color: #111827; }
+    .product-category { font-size: 0.8rem; color: #2563eb; font-weight: 500; text-transform: capitalize; }
+    .product-description { font-size: 0.8rem; color: #6b7280; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #374151;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid #f3f4f6;
+    }
+    .product-price { font-weight: 700; color: #111827; font-size: 1.1rem; }
+    .product-stock { color: #6b7280; font-size: 0.75rem; }
+    .btn-add-cart {
+      width: 100%;
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 0.6rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-add-cart:hover { background: #059669; }
+
+    .loading, .error, .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      color: #6b7280;
+    }
+    .error { color: #ef4444; }
+
+    /* ========== CARRITO PANEL ========== */
+    .cart-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .cart-overlay.open { opacity: 1; visibility: visible; }
+
+    .cart-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      box-shadow: -20px 0 40px rgba(0,0,0,0.1);
+    }
+    .cart-panel.open { transform: translateX(0); }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .cart-header h2 { font-size: 1.25rem; color: #111827; }
+    .btn-close-cart {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 0.25rem;
+      line-height: 1;
+    }
+    .btn-close-cart:hover { color: #111827; }
+
+    .cart-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #6b7280;
+    }
+    .cart-empty svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5; }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 56px 1fr auto auto 40px;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .cart-item-image {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+    .cart-item-info h4 { font-size: 0.85rem; font-weight: 600; color: #111827; }
+    .cart-item-price { font-size: 0.75rem; color: #6b7280; }
+    .cart-item-qty { display: flex; align-items: center; gap: 0.5rem; }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-btn:hover { background: #f3f4f6; }
+    .qty-value { min-width: 1.5rem; text-align: center; font-weight: 600; }
+    .cart-item-subtotal { font-weight: 600; color: #111827; font-size: 0.9rem; text-align: right; min-width: 70px; }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.25rem;
+      line-height: 1;
+    }
+    .btn-remove:hover { color: #ef4444; }
+
+    .cart-footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 1rem 1.5rem;
+      background: #fff;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .cart-summary {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .cart-summary.visible { display: flex; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+    .summary-row.total { font-size: 1.1rem; font-weight: 700; color: #111827; padding-top: 0.5rem; border-top: 1px dashed #e5e7eb; }
+
+    .checkout-form { display: none; }
+    .checkout-form.visible { display: block; }
+    .checkout-form .form-group { margin-bottom: 1rem; }
+    .checkout-form label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+    .checkout-form input,
+    .checkout-form textarea {
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .checkout-form input:focus,
+    .checkout-form textarea:focus { outline: none; border-color: #2563eb; }
+    .checkout-form textarea { min-height: 80px; resize: vertical; }
+
+    .btn-checkout {
+      width: 100%;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.85rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-checkout:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-checkout:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .login-prompt {
+      text-align: center;
+      padding: 1rem;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      color: #92400e;
+      font-size: 0.85rem;
+    }
+    .login-prompt a { color: #2563eb; font-weight: 600; }
+
     /* ========== STATUS / SETUP ========== */
     .tools-section {
       max-width: 600px;
@@ -227,129 +529,26 @@
       min-width: 220px;
       margin-bottom: 1rem;
     }
-    .status.ok {
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-    }
-    .status.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-    .status.loading {
-      background: #e5e7eb;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
-    .detail.ok {
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-    .detail.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-    .actions {
-      margin-top: 1.5rem;
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    button {
-      padding: 0.6rem 1.25rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button.primary {
-      background: #2563eb;
-      color: #fff;
-    }
+    .status.ok { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .status.loading { background: #e5e7eb; color: #374151; border: 1px solid #d1d5db; }
+    .detail.ok { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+    .detail.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+    .actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    button { padding: 0.6rem 1.25rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    button.primary { background: #2563eb; color: #fff; }
     button.primary:hover { background: #1d4ed8; }
-    button.secondary {
-      background: #f3f4f6;
-      color: #111827;
-    }
+    button.secondary { background: #f3f4f6; color: #111827; }
     button.secondary:hover { background: #e5e7eb; }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .detail {
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      color: #6b7280;
-      word-break: break-all;
-    }
+    .detail { margin-top: 1rem; font-size: 0.85rem; color: #6b7280; word-break: break-all; }
 
     /* ========== MESSAGES ========== */
-    .msg {
-      padding: 0.85rem 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      display: none;
-    }
-    .msg.success {
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-    }
-    .msg.error {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
+    .msg { padding: 0.85rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; display: none; }
+    .msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .msg.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
-    /* ========== PRODUCTOS PLACEHOLDER ========== */
-    .products-section {
-      max-width: 1200px;
-      margin: 0 auto 3rem;
-      display: none;
-    }
-    .products-section.visible { display: block; }
-    .products-section h2 {
-      font-size: 1.5rem;
-      margin-bottom: 1.5rem;
-      color: #111827;
-    }
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.5rem;
-    }
-    .product-card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      border: 1px solid #e5e7eb;
-    }
-    .product-card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #111827; }
-    .product-card p { font-size: 0.85rem; color: #6b7280; margin-bottom: 0.75rem; }
-    .product-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: #374151;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: #6b7280;
-      font-size: 0.85rem;
-      border-top: 1px solid #e5e7eb;
-    }
+    footer { text-align: center; padding: 2rem; color: #6b7280; font-size: 0.85rem; border-top: 1px solid #e5e7eb; }
   </style>
 </head>
 <body>
@@ -367,6 +566,11 @@
       <div id="auth-header-guest">
         <a href="#" class="btn-logout" onclick="event.preventDefault(); showAuth();" style="background:#2563eb;color:#fff;text-decoration:none;padding:0.5rem 1rem;border-radius:8px;">Iniciar Sesión</a>
       </div>
+
+      <!-- Botón carrito (solo visible si hay sesión) -->
+      <button id="btnCartToggle" class="btn-cart-toggle" style="display:none;" aria-label="Carrito de compras">
+        🛒 <span id="cartCount" class="cart-count">0</span>
+      </button>
     </div>
   </header>
 
@@ -429,6 +633,28 @@
       </div>
     </section>
 
+    <!-- ========== FILTROS ========== -->
+    <section class="filters-section" id="filtersSection" style="display:none;">
+      <div class="filters-row">
+        <div class="filter-group">
+          <label for="filter-search">Buscar por nombre</label>
+          <input type="text" id="filter-search" placeholder="Ej: coca, leche, pan..." />
+        </div>
+        <div class="filter-group">
+          <label for="filter-categoria">Categoría</label>
+          <select id="filter-categoria">
+            <option value="">Todas las categorías</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== PRODUCTOS ========== -->
+    <section class="products-section" id="productsSection">
+      <h2>Catálogo de Productos</h2>
+      <div class="products-grid" id="productsGrid"></div>
+    </section>
+
     <!-- ========== HERRAMIENTAS BD ========== -->
     <section class="tools-section">
       <div class="tools-card">
@@ -444,317 +670,54 @@
         <div id="setup-result" class="detail" style="margin-top:1rem; display:none;"></div>
       </div>
     </section>
-
-    <!-- ========== PRODUCTOS (solo si logueado) ========== -->
-    <section class="products-section" id="productsSection">
-      <h2>Catálogo de Productos</h2>
-      <div class="products-grid" id="productsGrid"></div>
-    </section>
   </main>
 
+  <!-- ========== CARRITO PANEL ========== -->
+  <div id="cartOverlay" class="cart-overlay" aria-hidden="true"></div>
+  <aside id="cartPanel" class="cart-panel" aria-label="Carrito de compras">
+    <div class="cart-header">
+      <h2>Carrito de Compras</h2>
+      <button class="btn-close-cart" onclick="toggleCart()" aria-label="Cerrar carrito">✕</button>
+    </div>
+    <div class="cart-body">
+      <div id="cartEmpty" class="cart-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <p>Tu carrito está vacío</p>
+        <p style="font-size:0.8rem; margin-top:0.5rem;">Agrega productos del catálogo</p>
+      </div>
+      <div id="cartItems"></div>
+    </div>
+    <div class="cart-footer">
+      <div id="cartSummary" class="cart-summary">
+        <div class="summary-row"><span>Subtotal</span><span id="cartSubtotal">S/ 0.00</span></div>
+        <div class="summary-row"><span>Envío (fijo)</span><span id="cartShipping">S/ 3.00</span></div>
+        <div class="summary-row total"><span>Total</span><span id="cartTotal">S/ 3.00</span></div>
+      </div>
+
+      <form id="checkoutForm" class="checkout-form" onsubmit="handleCheckout(event)">
+        <div class="form-group">
+          <label for="checkoutDireccion">Dirección de envío *</label>
+          <textarea id="checkoutDireccion" required placeholder="Calle, número, urbanización, distrito..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="checkoutTelefono">Teléfono de contacto *</label>
+          <input type="tel" id="checkoutTelefono" required placeholder="999 888 777" />
+        </div>
+        <button type="submit" class="btn-checkout" id="btnCheckout" disabled>Confirmar Pedido</button>
+      </form>
+
+      <div id="checkoutLoginPrompt" class="login-prompt" style="display:none;">
+        Para confirmar tu pedido, <a href="#" onclick="event.preventDefault(); showAuth(); toggleCart();">inicia sesión como cliente</a>.
+      </div>
+    </div>
+  </aside>
+
   <footer>
-    Food Store &middot; Proyecto de Organización Empresarial &middot; Pagos 100% simulados
+    Food Store · Proyecto de Organización Empresarial · Pagos 100% simulados
   </footer>
 
-  <script>
-    const TIMEOUT_MS = 10000;
-    const JWT_STORAGE_KEY = 'food_store_token';
-
-    // ---------- Utilidades ----------
-    async function fetchWithTimeout(url, options = {}) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
-      try {
-        const res = await fetch(url, { ...options, signal: controller.signal });
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          return { ok: res.ok, status: res.status, data: await res.json() };
-        }
-        return { ok: res.ok, status: res.status, data: await res.text() };
-      } finally {
-        clearTimeout(id);
-      }
-    }
-
-    function showMsg(id, text, type = 'error') {
-      const el = document.getElementById(id);
-      el.textContent = text;
-      el.className = `msg ${type}`;
-      el.style.display = 'block';
-    }
-    function hideMsg(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-
-    // ---------- Estado de sesión ----------
-    function getToken() { return localStorage.getItem(JWT_STORAGE_KEY); }
-    function setToken(t) { localStorage.setItem(JWT_STORAGE_KEY, t); }
-    function clearToken() { localStorage.removeItem(JWT_STORAGE_KEY); }
-
-    function updateHeader(user) {
-      const guest = document.getElementById('auth-header-guest');
-      const auth = document.getElementById('auth-header');
-      const authSection = document.getElementById('authSection');
-      const products = document.getElementById('productsSection');
-
-      if (user) {
-        guest.style.display = 'none';
-        auth.style.display = 'flex';
-        document.getElementById('user-name').textContent = user.nombre;
-        const badge = document.getElementById('user-badge');
-        badge.textContent = user.rol;
-        badge.className = `user-badge badge-${user.rol}`;
-        authSection.style.display = 'none';
-        products.classList.add('visible');
-        loadProducts();
-      } else {
-        guest.style.display = 'block';
-        auth.style.display = 'none';
-        authSection.style.display = 'block';
-        products.classList.remove('visible');
-      }
-    }
-
-    async function checkSession() {
-      const token = getToken();
-      if (!token) { updateHeader(null); return; }
-
-      try {
-        const res = await fetchWithTimeout('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok && res.data.authenticated) {
-          updateHeader(res.data.data);
-        } else {
-          clearToken();
-          updateHeader(null);
-        }
-      } catch (e) {
-        clearToken();
-        updateHeader(null);
-      }
-    }
-
-    // ---------- Auth ----------
-    function switchAuthTab(tab) {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(`form-${tab}`).classList.add('active');
-      hideMsg('msg-login');
-      hideMsg('msg-register');
-    }
-
-    function showAuth() {
-      document.getElementById('authSection').style.display = 'block';
-      document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnLoginSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Ingresando...';
-      hideMsg('msg-login');
-
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-
-      try {
-        const res = await fetchWithTimeout('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (res.ok && res.data.success) {
-          setToken(res.data.data.token);
-          updateHeader(res.data.data.usuario);
-        } else {
-          showMsg('msg-login', res.data.error || 'Email o contraseña incorrectos.');
-        }
-      } catch (err) {
-        showMsg('msg-login', err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Iniciar Sesión';
-      }
-    }
-
-    async function handleRegister(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnRegisterSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Creando cuenta...';
-      hideMsg('msg-register');
-
-      const nombre = document.getElementById('reg-nombre').value;
-      const email = document.getElementById('reg-email').value;
-      const password = document.getElementById('reg-password').value;
-
-      try {
-        const res = await fetchWithTimeout('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, email, password })
-        });
-
-        if (res.ok && res.data.success) {
-          showMsg('msg-register', 'Cuenta creada correctamente. Ahora puedes iniciar sesión.', 'success');
-          document.getElementById('form-register').reset();
-          switchAuthTab('login');
-        } else {
-          showMsg('msg-register', res.data.error || 'Error al registrar.');
-        }
-      } catch (err) {
-        showMsg('msg-register', err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Crear Cuenta';
-      }
-    }
-
-    async function handleLogout() {
-      try {
-        await fetchWithTimeout('/api/auth/logout', { method: 'POST' });
-      } finally {
-        clearToken();
-        updateHeader(null);
-      }
-    }
-
-    function fillQuickLogin(email, password, nombre) {
-      document.getElementById('login-email').value = email;
-      document.getElementById('login-password').value = password;
-      showMsg('msg-login', `Credenciales de ${nombre} cargadas. Haz clic en "Iniciar Sesión".`, 'success');
-      switchAuthTab('login');
-    }
-
-    // ---------- DB Status / Setup ----------
-    async function checkStatus() {
-      const statusEl = document.getElementById('status');
-      const detailEl = document.getElementById('detail');
-      statusEl.textContent = 'Consultando servidor...';
-      statusEl.className = 'status loading';
-      detailEl.textContent = '';
-
-      try {
-        const res = await fetchWithTimeout('/api/status', { cache: 'no-store' });
-        if (res.data.connected) {
-          statusEl.textContent = res.data.message;
-          statusEl.className = 'status ok';
-          detailEl.textContent = `Hora servidor: ${res.data.data.hora_servidor} | Versión: ${res.data.data.version_postgres}`;
-        } else {
-          statusEl.textContent = res.data.message;
-          statusEl.className = 'status error';
-          detailEl.textContent = res.data.error || '';
-        }
-      } catch (err) {
-        statusEl.textContent = 'Tiempo de espera agotado o error de red.';
-        statusEl.className = 'status error';
-        detailEl.textContent = err.name === 'AbortError' ? 'La solicitud excedió los 10 segundos.' : err.message;
-      }
-    }
-
-    async function initDB() {
-      const btn = document.getElementById('btnInit');
-      btn.disabled = true;
-      btn.textContent = 'Procesando...';
-      try {
-        const res = await fetchWithTimeout('/api/init', { method: 'POST' });
-        const detailEl = document.getElementById('detail');
-        if (res.data.success) {
-          document.getElementById('status').textContent = res.data.message;
-          document.getElementById('status').className = 'status ok';
-          detailEl.textContent = `Registros en prueba: ${res.data.total_registros}`;
-        } else {
-          document.getElementById('status').textContent = res.data.message;
-          document.getElementById('status').className = 'status error';
-          detailEl.textContent = res.data.error || '';
-        }
-      } catch (err) {
-        document.getElementById('status').textContent = 'Error al inicializar.';
-        document.getElementById('status').className = 'status error';
-        document.getElementById('detail').textContent = err.name === 'AbortError' ? 'Tiempo de espera agotado.' : err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Inicializar BD (crear tabla)';
-      }
-    }
-
-    async function runSetup() {
-      const btn = document.getElementById('btnSetup');
-      btn.disabled = true;
-      btn.textContent = 'Procesando setup...';
-      const setupResult = document.getElementById('setup-result');
-      setupResult.style.display = 'none';
-
-      try {
-        const res = await fetchWithTimeout('/api/setup-db', { method: 'POST' });
-        setupResult.style.display = 'block';
-        if (res.data.success) {
-          setupResult.className = 'detail ok';
-          setupResult.innerHTML = `
-            <strong>Setup completado:</strong><br>
-            Tablas: ${res.data.data.tablas_creadas.join(', ')}<br>
-            Categorías cargadas: ${res.data.data.categorias_insertadas}<br>
-            Productos cargados: ${res.data.data.productos_insertados}<br>
-            Usuarios cargados: ${res.data.data.usuarios_insertados}
-          `;
-        } else {
-          setupResult.className = 'detail error';
-          setupResult.innerHTML = `<strong>Error:</strong> ${res.data.error || res.data.message || ''}`;
-        }
-      } catch (err) {
-        setupResult.style.display = 'block';
-        setupResult.className = 'detail error';
-        setupResult.textContent = err.name === 'AbortError'
-          ? 'Tiempo de espera agotado (10s) al ejecutar el setup.'
-          : 'Error de red: ' + err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Ejecutar Setup BD';
-      }
-    }
-
-    // ---------- Productos ----------
-    async function loadProducts() {
-      const grid = document.getElementById('productsGrid');
-      grid.innerHTML = '<p>Cargando productos...</p>';
-
-      try {
-        // Nota: como no hay endpoint de productos aún, mostramos datos estáticos de ejemplo
-        const productos = [
-          { nombre: 'Coca Cola 500ml', categoria: 'Bebidas', precio: 1.50, stock: 100, stock_minimo: 10 },
-          { nombre: 'Agua Mineral 1L', categoria: 'Bebidas', precio: 0.80, stock: 150, stock_minimo: 20 },
-          { nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 1.20, stock: 60, stock_minimo: 15 },
-          { nombre: 'Pan Blanco', categoria: 'Panadería', precio: 1.00, stock: 50, stock_minimo: 10 },
-          { nombre: 'Tomate 1kg', categoria: 'Verduras', precio: 2.50, stock: 100, stock_minimo: 20 },
-          { nombre: 'Zanahoria 1kg', categoria: 'Verduras', precio: 1.20, stock: 80, stock_minimo: 15 }
-        ];
-        grid.innerHTML = productos.map(p => `
-          <div class="product-card">
-            <h3>${p.nombre}</h3>
-            <p>${p.categoria}</p>
-            <div class="product-meta">
-              <span>S/ ${p.precio.toFixed(2)}</span>
-              <span>Stock: ${p.stock} (mín. ${p.stock_minimo})</span>
-            </div>
-          </div>
-        `).join('');
-      } catch (e) {
-        grid.innerHTML = '<p style="color:#991b1b;">No se pudieron cargar los productos.</p>';
-      }
-    }
-
-    // ---------- Inicialización ----------
-    document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
-    document.getElementById('btnRefresh').addEventListener('click', checkStatus);
-    document.getElementById('btnInit').addEventListener('click', initDB);
-    document.getElementById('btnSetup').addEventListener('click', runSetup);
-
-    checkSession();
-    checkStatus();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

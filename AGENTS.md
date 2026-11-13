@@ -23,3 +23,6 @@ Este archivo establece las directrices y reglas clave de desarrollo para cualqui
 ## Objetivos del Proyecto
 - Desarrollar una solución funcional para la materia **Organización Empresarial**.
 - Mantener un código limpio, estructurado y documentado.
+
+## Reglas de Entrega
+- Al finalizar cualquier tarea, entregá siempre un resumen estructurado en español detallando: 1) Archivos creados o modificados, 2) Cómo funciona la lógica implementada, y 3) Cómo probarlo paso a paso.
