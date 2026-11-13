@@ -608,6 +608,12 @@ let currentPaymentOrderId = null;
 function openPaymentModal(pedidoId, total, items) {
   currentPaymentOrderId = pedidoId;
 
+  // Cerrar cualquier modal de pago existente antes de crear uno nuevo
+  const existingOverlay = document.getElementById('paymentModalOverlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
   // Crear overlay del modal
   const overlay = document.createElement('div');
   overlay.className = 'payment-modal-overlay';
@@ -646,12 +652,19 @@ function openPaymentModal(pedidoId, total, items) {
 }
 
 function closePaymentModal() {
-  const overlay = document.getElementById('paymentModalOverlay');
-  if (overlay) {
-    overlay.style.animation = 'fadeOut 0.2s ease';
-    setTimeout(() => overlay.remove(), 200);
-  }
-  currentPaymentOrderId = null;
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('paymentModalOverlay');
+    if (overlay) {
+      overlay.style.animation = 'fadeOut 0.2s ease';
+      setTimeout(() => {
+        overlay.remove();
+        resolve();
+      }, 200);
+    } else {
+      resolve();
+    }
+    currentPaymentOrderId = null;
+  });
 }
 
 // ---------- Toast de alta prioridad (z-index 9999, duración 4s+) ----------
@@ -699,8 +712,8 @@ async function handlePaymentAction(pedidoId, accion) {
 
     if (res.ok && res.data.success) {
       if (accion === 'aprobar') {
-        // Pago aprobado - PRIMERO cerrar modal, LUEGO mostrar toast prioritario
-        closePaymentModal();
+        // Pago aprobado - PRIMERO cerrar modal completamente, LUEGO mostrar toast prioritario
+        await closePaymentModal();
         
         // Actualizar catálogo para reflejar nuevo stock
         await loadProducts();
