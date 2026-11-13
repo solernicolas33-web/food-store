@@ -1,5 +1,5 @@
 // ========== Food Store - App Principal ==========
-// Maneja: catálogo con filtros, carrito (localStorage), checkout
+// Maneja: catálogo con filtros, carrito (localStorage), checkout, pago simulado
 
 const API_BASE = '/api';
 const CART_STORAGE_KEY = 'food_store_cart';
@@ -33,6 +33,58 @@ if (!document.getElementById('toast-styles')) {
   style.textContent = `
     @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100px); } }
+  `;
+  document.head.appendChild(style);
+}
+
+// Agregar estilos para modal de pago si no existen
+if (!document.getElementById('payment-modal-styles')) {
+  const style = document.createElement('style');
+  style.id = 'payment-modal-styles';
+  style.textContent = `
+    .payment-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .payment-modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .payment-modal h2 { font-size: 1.5rem; color: #111827; margin-bottom: 0.5rem; text-align: center; }
+    .payment-modal .order-info { background: #f9fafb; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; }
+    .payment-modal .order-info p { margin: 0.5rem 0; font-size: 0.95rem; }
+    .payment-modal .order-info .label { color: #6b7280; font-weight: 500; }
+    .payment-modal .order-info .value { color: #111827; font-weight: 600; float: right; }
+    .payment-modal .total-row { border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.75rem; font-size: 1.1rem; }
+    .payment-modal .total-row .value { color: #2563eb; font-size: 1.25rem; }
+    .payment-modal .warning { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center; }
+    .payment-modal .btn-group { display: flex; gap: 0.75rem; }
+    .payment-modal .btn { flex: 1; padding: 0.85rem; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+    .payment-modal .btn-approve { background: #10b981; color: #fff; }
+    .payment-modal .btn-approve:hover:not(:disabled) { background: #059669; }
+    .payment-modal .btn-reject { background: #ef4444; color: #fff; }
+    .payment-modal .btn-reject:hover:not(:disabled) { background: #dc2626; }
+    .payment-modal .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .payment-modal .result-message { text-align: center; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; }
+    .payment-modal .result-message.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .payment-modal .result-message.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .payment-modal .retry-btn { margin-top: 1rem; background: #2563eb; color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; }
+    .payment-modal .retry-btn:hover { background: #1d4ed8; }
   `;
   document.head.appendChild(style);
 }
@@ -420,6 +472,152 @@ function toggleCart() {
   if (panel.classList.contains('open')) renderCart();
 }
 
+// ---------- Modal de Pago Simulado ----------
+let currentPaymentOrderId = null;
+
+function openPaymentModal(pedidoId, total, items) {
+  currentPaymentOrderId = pedidoId;
+
+  // Crear overlay del modal
+  const overlay = document.createElement('div');
+  overlay.className = 'payment-modal-overlay';
+  overlay.id = 'paymentModalOverlay';
+  overlay.innerHTML = `
+    <div class="payment-modal" id="paymentModal">
+      <h2>💳 Pago Simulado</h2>
+      <p style="text-align:center; color:#6b7280; margin-bottom:1rem;">Paso final: confirme o rechace el pago del pedido</p>
+
+      <div class="order-info">
+        <p><span class="label">N° de Pedido:</span> <span class="value">#${pedidoId}</span></p>
+        <p><span class="label">Productos:</span> <span class="value">${items.length} item(s)</span></p>
+        <p class="total-row"><span class="label">Total a pagar:</span> <span class="value">S/ ${total.toFixed(2)}</span></p>
+      </div>
+
+      <div class="warning">
+        ⚠️ Este es un pago <strong>100% simulado</strong>. No se solicitan datos de tarjeta ni se procesan transacciones reales.
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-approve" id="btnApprovePayment" onclick="handlePaymentAction(${pedidoId}, 'aprobar')">Aprobar pago</button>
+        <button class="btn btn-reject" id="btnRejectPayment" onclick="handlePaymentAction(${pedidoId}, 'rechazar')">Rechazar pago</button>
+      </div>
+
+      <div class="result-message" id="paymentResultMessage"></div>
+      <button class="retry-btn" id="paymentRetryBtn" onclick="retryPayment()">Volver a intentar</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Cerrar al hacer click en overlay (fondo)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closePaymentModal();
+  });
+}
+
+function closePaymentModal() {
+  const overlay = document.getElementById('paymentModalOverlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut 0.2s ease';
+    setTimeout(() => overlay.remove(), 200);
+  }
+  currentPaymentOrderId = null;
+}
+
+async function handlePaymentAction(pedidoId, accion) {
+  const btnApprove = document.getElementById('btnApprovePayment');
+  const btnReject = document.getElementById('btnRejectPayment');
+  const resultMsg = document.getElementById('paymentResultMessage');
+  const retryBtn = document.getElementById('paymentRetryBtn');
+
+  // Deshabilitar botones durante la petición
+  btnApprove.disabled = true;
+  btnReject.disabled = true;
+  resultMsg.style.display = 'none';
+  retryBtn.style.display = 'none';
+
+  try {
+    const res = await fetchAPI(`/pedidos/${pedidoId}/pagar`, {
+      method: 'POST',
+      body: JSON.stringify({ accion })
+    });
+
+    if (res.ok && res.data.success) {
+      if (accion === 'aprobar') {
+        // Pago aprobado - mostrar éxito, actualizar catálogo, cerrar carrito y modal
+        resultMsg.className = 'result-message success';
+        resultMsg.textContent = `✅ ${res.data.message}`;
+        resultMsg.style.display = 'block';
+
+        showToast('¡Pago aprobado! Pedido confirmado y stock actualizado.', 'success');
+
+        // Actualizar catálogo para reflejar nuevo stock
+        await loadProducts();
+
+        // Limpiar carrito y cerrar todo
+        clearCart();
+        document.getElementById('checkoutDireccion').value = '';
+        document.getElementById('checkoutTelefono').value = '';
+        toggleCart(); // Cerrar panel del carrito
+
+        // Cerrar modal después de 2 segundos
+        setTimeout(() => closePaymentModal(), 2000);
+
+      } else {
+        // Pago rechazado - mostrar mensaje y permitir reintentar
+        resultMsg.className = 'result-message error';
+        resultMsg.textContent = `❌ ${res.data.message}`;
+        resultMsg.style.display = 'block';
+        retryBtn.style.display = 'block';
+
+        showToast('Pago rechazado. El pedido permanece pendiente.', 'error');
+      }
+    } else {
+      // Error del servidor (ej. falta de stock)
+      resultMsg.className = 'result-message error';
+      resultMsg.textContent = `❌ ${res.data.error || 'Error al procesar el pago'}`;
+
+      // Si es error de stock, mostrar detalles
+      if (res.data.data && res.data.data.productos_sin_stock) {
+        const detalles = res.data.data.productos_sin_stock.map(p =>
+          `"${p.nombre}" (stock: ${p.stock_disponible}, solicitado: ${p.cantidad_solicitada})`
+        ).join('; ');
+        resultMsg.textContent += `\n\nProductos sin stock: ${detalles}`;
+      }
+
+      resultMsg.style.display = 'block';
+
+      if (accion === 'aprobar') {
+        // Si falló al aprobar, permitir reintentar
+        retryBtn.style.display = 'block';
+      } else {
+        // Si falló al rechazar (raro), cerrar
+        setTimeout(() => closePaymentModal(), 3000);
+      }
+    }
+  } catch (err) {
+    resultMsg.className = 'result-message error';
+    resultMsg.textContent = `❌ Error de conexión: ${err.message}`;
+    resultMsg.style.display = 'block';
+    if (accion === 'aprobar') retryBtn.style.display = 'block';
+  } finally {
+    btnApprove.disabled = false;
+    btnReject.disabled = false;
+  }
+}
+
+function retryPayment() {
+  const resultMsg = document.getElementById('paymentResultMessage');
+  const retryBtn = document.getElementById('paymentRetryBtn');
+  const btnApprove = document.getElementById('btnApprovePayment');
+  const btnReject = document.getElementById('btnRejectPayment');
+
+  resultMsg.style.display = 'none';
+  retryBtn.style.display = 'none';
+  btnApprove.disabled = false;
+  btnReject.disabled = false;
+}
+
 // ---------- Checkout ----------
 async function handleCheckout(e) {
   e.preventDefault();
@@ -444,7 +642,7 @@ async function handleCheckout(e) {
   }
 
   const btn = document.getElementById('btnCheckout');
-  btn.disabled = true; btn.textContent = 'Procesando...';
+  btn.disabled = true; btn.textContent = 'Creando pedido...';
 
   const items = state.cart.map(item => ({
     producto_id: item.producto_id,
@@ -458,11 +656,12 @@ async function handleCheckout(e) {
     });
 
     if (res.ok && res.data.success) {
-      showToast(`¡Pedido #${res.data.data.pedido_id} confirmado! Total: S/ ${res.data.data.total.toFixed(2)}`, 'success');
-      clearCart();
-      document.getElementById('checkoutDireccion').value = '';
-      document.getElementById('checkoutTelefono').value = '';
-      toggleCart(); // Cerrar panel
+      const pedido = res.data.data;
+      showToast(`¡Pedido #${pedido.pedido_id} creado! Proceda al pago.`, 'success');
+
+      // Abrir modal de pago simulado con los datos del pedido
+      openPaymentModal(pedido.pedido_id, pedido.total, pedido.items);
+
     } else {
       showToast(res.data.error || 'Error al crear el pedido', 'error');
     }
@@ -559,3 +758,6 @@ window.switchAuthTab = switchAuthTab;
 window.showAuth = showAuth;
 window.fillQuickLogin = fillQuickLogin;
 window.toggleCart = toggleCart;
+window.handlePaymentAction = handlePaymentAction;
+window.retryPayment = retryPayment;
+window.closePaymentModal = closePaymentModal;
