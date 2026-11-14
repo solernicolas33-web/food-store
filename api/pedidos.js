@@ -108,7 +108,11 @@ module.exports = async (req, res) => {
     if (method === 'POST' && url.includes('/pagar')) {
       if (!isClient(decoded)) return sendError(res, 403, 'Solo clientes pueden gestionar pagos.');
 
-      const pedidoId = parseInt(url.split('/').pop(), 10);
+      // Extraer pedidoId: limpiar query params y tomar segmento anterior a 'pagar'
+      const cleanUrl = url.split('?')[0];
+      const segments = cleanUrl.split('/');
+      const pagarIndex = segments.indexOf('pagar');
+      const pedidoId = (pagarIndex > 0) ? parseInt(segments[pagarIndex - 1], 10) : (req.body?.pedido_id || req.body?.id);
       const { accion } = req.body || {};
       if (!pedidoId || isNaN(pedidoId)) return sendError(res, 400, 'ID de pedido inválido.');
       if (!accion || !['aprobar', 'rechazar'].includes(accion)) return sendError(res, 400, 'Acción inválida. Use "aprobar" o "rechazar".');
@@ -162,7 +166,11 @@ module.exports = async (req, res) => {
     if (method === 'POST' && url.includes('/cancelar')) {
       if (!isClient(decoded)) return sendError(res, 403, 'Solo clientes pueden cancelar pedidos.');
 
-      const pedidoId = parseInt(url.split('/').pop(), 10);
+      // Extraer pedidoId: limpiar query params y tomar segmento anterior a 'cancelar'
+      const cleanUrl = url.split('?')[0];
+      const segments = cleanUrl.split('/');
+      const cancelarIndex = segments.indexOf('cancelar');
+      const pedidoId = (cancelarIndex > 0) ? parseInt(segments[cancelarIndex - 1], 10) : (req.body?.pedido_id || req.body?.id);
       const { motivo } = req.body || {};
       if (!pedidoId || isNaN(pedidoId)) return sendError(res, 400, 'ID de pedido inválido.');
       if (!motivo || !motivo.trim()) return sendError(res, 400, 'El motivo de cancelación es obligatorio.');

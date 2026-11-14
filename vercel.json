@@ -22,6 +22,14 @@
       "dest": "/api/pedidos"
     },
     {
+      "src": "/api/admin/pedidos(.*)",
+      "dest": "/api/pedidos"
+    },
+    {
+      "src": "/api/admin/productos(.*)",
+      "dest": "/api/productos"
+    },
+    {
       "src": "/api/admin/(.*)",
       "dest": "/api/admin"
     },
